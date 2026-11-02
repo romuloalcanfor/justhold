@@ -168,3 +168,5 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 body.resizing-x, body.resizing-x * { cursor: col-resize !important; user-select: none; }
 body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select: none; }
 @media (max-width: 760px) { .splitter.x { display: none; } }
+.wl-row { user-select: none; }
+.wl-row.dragging { z-index: 2; background: var(--hover); box-shadow: 0 2px 10px rgba(0, 0, 0, .5); outline: 1px solid var(--accent); }

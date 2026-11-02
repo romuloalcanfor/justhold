@@ -614,7 +614,7 @@ function renderWatchlist() {
   wlRows.clear();
   $('#wl-rows').replaceChildren(...state.watchlist.map(sym => {
     const last = h('span', {}, '—'), chg = h('span', {}, '—'), pct = h('span', {}, '—');
-    const row = h('div', { class: `wl-row${sym === state.symbol ? ' current' : ''}`, 'data-sym': sym, onclick: () => setSymbol(sym) },
+    const row = h('div', { class: `wl-row${sym === state.symbol ? ' current' : ''}`, 'data-sym': sym, onclick: () => { if (performance.now() - wlDroppedAt > 300) setSymbol(sym); } },
       h('span', { class: 'wl-sym' }, h('i', { class: 'coin', style: `background:${coinColor(sym)}` }, sym[0]), sym), last, chg, pct,
       h('button', {
         class: 'wl-del', title: 'Remover',
@@ -625,6 +625,57 @@ function renderWatchlist() {
   }));
   connectWatchlist();
 }
+
+// Segurar e arrastar uma linha muda a ordem da watchlist (clique simples continua abrindo o par).
+let wlDrag = null;
+let wlDroppedAt = 0;
+const wlRowsEl = $('#wl-rows');
+wlRowsEl.addEventListener('pointerdown', e => {
+  const row = e.target.closest('.wl-row');
+  if (!row || e.button !== 0 || e.target.closest('.wl-del')) return;
+  wlDrag = { row, id: e.pointerId, y0: e.clientY, y: e.clientY, active: false, scroll: 0 };
+});
+wlRowsEl.addEventListener('pointermove', e => {
+  if (!wlDrag || e.pointerId !== wlDrag.id) return;
+  wlDrag.y = e.clientY;
+  if (!wlDrag.active) {
+    if (Math.abs(e.clientY - wlDrag.y0) < 5) return;
+    wlDrag.active = true;
+    wlRowsEl.setPointerCapture(e.pointerId);
+    wlDrag.row.classList.add('dragging');
+    document.body.classList.add('resizing-y');
+    const autoScroll = () => {
+      if (!wlDrag?.active) return;
+      const r = wlRowsEl.getBoundingClientRect();
+      const edge = 40;
+      const dy = wlDrag.y < r.top + edge ? -(r.top + edge - wlDrag.y) : wlDrag.y > r.bottom - edge ? wlDrag.y - (r.bottom - edge) : 0;
+      if (dy) { wlRowsEl.scrollTop += dy / 3; placeDragged(); }
+      wlDrag.scroll = requestAnimationFrame(autoScroll);
+    };
+    autoScroll();
+  }
+  placeDragged();
+});
+function placeDragged() {
+  const { row, y } = wlDrag;
+  const others = [...wlRowsEl.children].filter(r => r !== row);
+  const before = others.find(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
+  if (before !== row.nextSibling) wlRowsEl.insertBefore(row, before ?? null);
+}
+function endWlDrag(e) {
+  if (!wlDrag || e.pointerId !== wlDrag.id) return;
+  const { row, active, scroll } = wlDrag;
+  wlDrag = null;
+  if (!active) return;
+  cancelAnimationFrame(scroll);
+  row.classList.remove('dragging');
+  document.body.classList.remove('resizing-y');
+  wlDroppedAt = performance.now(); // o clique que vem depois de soltar não troca o par do gráfico
+  state.watchlist = [...wlRowsEl.children].map(r => r.dataset.sym);
+  store.set('watchlist.v2', state.watchlist);
+}
+wlRowsEl.addEventListener('pointerup', endWlDrag);
+wlRowsEl.addEventListener('pointercancel', endWlDrag);
 
 function coinColor(sym) {
   let x = 0;
