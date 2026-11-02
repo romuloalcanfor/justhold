@@ -1,0 +1,11 @@
+{
+  // Gráfico publicado como site estático na Cloudflare (Workers + assets).
+  // Publicar: npx wrangler deploy
+  "name": "justhold",
+  "compatibility_date": "2026-11-02",
+  "assets": { "directory": "./grafico" },
+  "routes": [
+    { "pattern": "justhold.ai", "custom_domain": true },
+    { "pattern": "www.justhold.ai", "custom_domain": true }
+  ]
+}
