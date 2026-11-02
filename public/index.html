@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JustHold · Gráfico de cripto ao vivo</title>
+<meta name="description" content="Gráfico de cripto ao vivo, com médias, régua e watchlist. Suas configurações salvas na sua conta.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="img/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<script type="importmap">{ "imports": { "three": "/vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="logo" href="/" aria-label="JustHold"><img src="img/logo.svg" alt="JustHold"></a>
+  <nav class="links">
+    <a href="/grafico/">Gráfico</a>
+    <a href="#recursos">Recursos</a>
+  </nav>
+  <span class="spacer"></span>
+  <div class="account" id="account">
+    <a class="btn link sm" href="/entrar/">Entrar</a>
+    <a class="btn primary sm" href="/grafico/">Abrir o gráfico</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <a class="pill" href="/grafico/" id="ticker"><span class="dot"></span>BTC/USDT <b id="tk-price">—</b> <span id="tk-chg"></span></a>
+      <h1>Paciência<br>é estratégia.</h1>
+      <p class="lead">Gráfico de cripto ao vivo, sem distração. Médias, régua e watchlist do seu jeito, salvos na sua conta.</p>
+      <div class="cta">
+        <a class="btn primary" href="/grafico/">Abrir o gráfico</a>
+        <a class="btn ghost" href="/entrar/?modo=criar" id="cta-signup">Criar conta grátis</a>
+      </div>
+    </div>
+    <div class="board" id="board" aria-hidden="true"></div>
+  </section>
+
+  <section class="section" id="recursos">
+    <h2>Cada lance no seu tempo.</h2>
+    <p class="sub">O essencial para acompanhar o mercado com calma, direto da Binance, no seu navegador.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 15l4-5 3 3 4-6 3 4"/><path d="M3 3v14h14"/></svg></div>
+        <h3>Ao vivo, candle a candle</h3>
+        <p>Preços em tempo real da Binance, do gráfico de 1 minuto ao mensal, com contagem regressiva do candle.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14c3-1 4-6 7-8s5-2 9-3"/><path d="M2 17c4 0 7-2 10-5s4-4 6-4"/></svg></div>
+        <h3>Médias que importam</h3>
+        <p>A média de 200 semanas sobre qualquer tempo gráfico, médias que mudam de cor com a tendência e régua para medir variação.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5"/></svg></div>
+        <h3>Do seu jeito, em qualquer lugar</h3>
+        <p>Watchlist, médias, linhas e layout ficam salvos na sua conta e aparecem iguais em qualquer computador.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section closing">
+    <h2>Just hold.</h2>
+    <div class="cta">
+      <a class="btn primary" href="/grafico/">Abrir o gráfico</a>
+      <a class="btn ghost" href="/entrar/?modo=criar" id="cta-signup-2">Criar conta grátis</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <img src="img/logo.svg" alt="JustHold">
+  <span>Dados públicos da Binance.</span>
+  <span class="spacer"></span>
+  <span>Nada aqui é recomendação de investimento.</span>
+</footer>
+
+<script type="module">
+  import { mountChess } from './js/xadrez.js';
+  import { me, logout } from './js/conta.js';
+
+  try { mountChess(document.getElementById('board')); } catch (e) { console.error(e); }
+
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
+
+  // Logado: troca "Entrar" pelo e-mail e um botão de sair; some o "Criar conta".
+  me().then(user => {
+    if (!user) return;
+    const acc = document.getElementById('account');
+    const out = Object.assign(document.createElement('button'), { className: 'btn link sm', textContent: 'Sair' });
+    out.onclick = async () => { await logout(); location.reload(); };
+    const who = Object.assign(document.createElement('span'), { textContent: user.email });
+    who.style.color = 'var(--muted)';
+    acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn primary sm', href: '/grafico/', textContent: 'Abrir o gráfico' }));
+    for (const id of ['cta-signup', 'cta-signup-2']) document.getElementById(id).remove();
+  });
+
+  // Preço do BTC ao vivo na pílula acima do título.
+  const price = document.getElementById('tk-price'), chg = document.getElementById('tk-chg');
+  const fmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const show = (c, o) => {
+    price.textContent = fmt.format(c);
+    const p = ((c - o) / o) * 100;
+    chg.textContent = `${p >= 0 ? '+' : '−'}${fmt.format(Math.abs(p))}%`;
+    chg.className = p >= 0 ? 'up' : 'down';
+  };
+  (function connect() {
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@miniTicker');
+    ws.onmessage = e => { const d = JSON.parse(e.data); show(+d.c, +d.o); };
+    ws.onclose = () => setTimeout(connect, 5000);
+  })();
+</script>
+</body>
+</html>

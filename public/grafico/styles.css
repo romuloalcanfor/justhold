@@ -170,3 +170,12 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 @media (max-width: 760px) { .splitter.x { display: none; } }
 .wl-row { user-select: none; }
 .wl-row.dragging { z-index: 2; background: var(--hover); box-shadow: 0 2px 10px rgba(0, 0, 0, .5); outline: 1px solid var(--accent); }
+#account { position: relative; }
+#account a.tb-btn { color: var(--text); text-decoration: none; }
+.acc-avatar { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #2a2e39; color: var(--text); font-size: 12px; font-weight: 600; }
+.acc-menu { position: absolute; right: 0; top: 36px; z-index: 40; width: 240px; padding: 12px; background: #1e222d; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+.acc-menu[hidden] { display: none; }
+.acc-email { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.acc-note { color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
+.acc-menu button { width: 100%; height: 32px; border-radius: 4px; text-align: left; padding: 0 8px; }
+.acc-menu button:hover { background: var(--hover); }

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · JustHold</title>
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="/" aria-label="JustHold"><img src="/img/logo.svg" alt="JustHold"></a>
+  <span class="spacer"></span>
+  <a class="btn ghost sm" href="/grafico/">Abrir o gráfico</a>
+</header>
+
+<main class="auth">
+  <form class="auth-box" id="form" novalidate>
+    <h1 id="title">Bem-vindo de volta</h1>
+    <p class="sub" id="subtitle">Entre para usar suas configurações salvas.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-mode="entrar">Entrar</button>
+      <button type="button" role="tab" data-mode="criar">Criar conta</button>
+    </div>
+    <label class="field"><span>E-mail</span><input id="email" type="email" autocomplete="email" required></label>
+    <label class="field"><span>Senha</span><input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+    <p class="form-error" id="error" role="alert"></p>
+    <button class="btn primary" id="submit" type="submit">Entrar</button>
+    <p class="note" id="note">Suas médias, watchlist e linhas vão junto com você para qualquer computador.</p>
+  </form>
+</main>
+
+<script type="module">
+  import { login, signup, me } from '/js/conta.js';
+
+  const params = new URLSearchParams(location.search);
+  // só volta para páginas do próprio site
+  const back = (params.get('volta') ?? '').match(/^\/(?!\/)/) ? params.get('volta') : '/grafico/';
+  const $ = id => document.getElementById(id);
+  const TEXT = {
+    entrar: { title: 'Bem-vindo de volta', sub: 'Entre para usar suas configurações salvas.', btn: 'Entrar', ac: 'current-password' },
+    criar: { title: 'Crie sua conta', sub: 'Grátis. Só e-mail e senha.', btn: 'Criar conta', ac: 'new-password' },
+  };
+  let mode = params.get('modo') === 'criar' ? 'criar' : 'entrar';
+
+  function setMode(m) {
+    mode = m;
+    const t = TEXT[m];
+    $('title').textContent = t.title;
+    $('subtitle').textContent = t.sub;
+    $('submit').textContent = t.btn;
+    $('password').autocomplete = t.ac;
+    $('password').placeholder = m === 'criar' ? 'Pelo menos 8 caracteres' : '';
+    $('error').textContent = '';
+    document.querySelectorAll('.tabs button').forEach(b => {
+      b.classList.toggle('on', b.dataset.mode === m);
+      b.setAttribute('aria-selected', b.dataset.mode === m);
+    });
+  }
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  setMode(mode);
+
+  me().then(user => { if (user) location.replace(back); });
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('email').value.trim(), password = $('password').value;
+    if (!email || !password) { $('error').textContent = 'Preencha e-mail e senha.'; return; }
+    if (mode === 'criar' && password.length < 8) { $('error').textContent = 'A senha precisa ter pelo menos 8 caracteres.'; return; }
+    $('submit').disabled = true;
+    $('error').textContent = '';
+    try {
+      await (mode === 'criar' ? signup : login)(email, password);
+      location.replace(back);
+    } catch (err) {
+      $('error').textContent = err.message;
+      $('submit').disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
