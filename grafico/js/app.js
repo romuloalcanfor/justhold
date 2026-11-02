@@ -273,11 +273,16 @@ function indicatorValues(ind) {
   const vals = calc[ind.type](htf.map(b => b.c), ind.period);
   const out = [];
   let j = -1;
-  // Como o "esperar o fechamento do tempo gráfico" do TradingView: dentro de cada
-  // semana (ou dia, mês...) vale a média do período anterior, já fechado.
+  // No começo de cada semana (ou dia, mês...) vale a média da semana anterior, já
+  // fechada; ao longo dela a linha caminha em reta até a média desta semana, em vez
+  // de ficar parada e dar um degrau na virada.
   for (const b of bars) {
     while (j + 1 < htf.length && htf[j + 1].t <= b.t) j++;
-    out.push(j >= 1 ? vals[j - 1] : null);
+    if (j < 1 || vals[j - 1] == null || vals[j] == null) { out.push(null); continue; }
+    const start = htf[j].t;
+    const end = htf[j + 1]?.t ?? start + (start - htf[j - 1].t);
+    const frac = Math.min(1, (b.t - start) / (end - start));
+    out.push(vals[j - 1] + (vals[j] - vals[j - 1]) * frac);
   }
   return out;
 }
@@ -292,7 +297,7 @@ function ensureSeries(ind) {
     entry = { series, values: [] };
     indSeries.set(ind.id, entry);
   }
-  entry.series.applyOptions({ color: ind.color, visible: ind.visible, lineType: usesHtf(ind) ? LW.LineType.WithSteps : LW.LineType.Simple });
+  entry.series.applyOptions({ color: ind.color, visible: ind.visible });
   return entry;
 }
 
@@ -300,7 +305,7 @@ function ensureSeries(ind) {
 function indColor(ind, values, i) {
   if (!ind.slope) return ind.color;
   let j = i - 1;
-  while (j >= 0 && values[j] === values[i]) j--; // degraus da média multi-tempo
+  while (j >= 0 && values[j] === values[i]) j--;
   return j < 0 || values[j] == null || values[i] >= values[j] ? SLOPE.up : SLOPE.down;
 }
 
@@ -806,6 +811,45 @@ $('#wl-toggle').addEventListener('click', () => {
   store.set('wlHidden', $('#app').classList.contains('wl-hidden'));
 });
 if (store.get('wlHidden', false)) $('#app').classList.add('wl-hidden');
+
+// Divisórias arrastáveis: largura da watchlist e altura do painel de detalhes.
+function splitter(el, axis, key, apply) {
+  const saved = store.get(key, null);
+  if (saved != null) apply(saved);
+  el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('drag');
+    document.body.classList.add(`resizing-${axis}`);
+    let last = null;
+    const move = ev => { last = apply(axis === 'x' ? ev.clientX : ev.clientY, true); };
+    const up = () => {
+      el.removeEventListener('pointermove', move);
+      el.classList.remove('drag');
+      document.body.classList.remove(`resizing-${axis}`);
+      if (last != null) store.set(key, last);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up, { once: true });
+    el.addEventListener('pointercancel', up, { once: true });
+  });
+  el.addEventListener('dblclick', () => { apply(null); store.set(key, null); });
+}
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+splitter($('#wl-resize-x'), 'x', 'wlWidth', (v, fromPointer) => {
+  if (v == null) { $('#app').style.removeProperty('--wl-w'); return null; }
+  const w = Math.round(clamp(fromPointer ? window.innerWidth - v : v, 220, window.innerWidth * 0.6));
+  $('#app').style.setProperty('--wl-w', `${w}px`);
+  return w;
+});
+splitter($('#wl-resize-y'), 'y', 'wlDetailH', (v, fromPointer) => {
+  const wl = $('#watchlist');
+  if (v == null) { wl.style.removeProperty('--wl-detail-h'); return null; }
+  const hgt = Math.round(clamp(fromPointer ? wl.getBoundingClientRect().bottom - v : v, 80, wl.clientHeight - 160));
+  wl.style.setProperty('--wl-detail-h', `${hgt}px`);
+  return hgt;
+});
 
 function applyScale() {
   chart.priceScale('right').applyOptions({ mode: state.log ? LW.PriceScaleMode.Logarithmic : LW.PriceScaleMode.Normal });
