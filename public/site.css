@@ -1,4 +1,4 @@
-/* Homepage e página de login do JustHold: escuro, tipografia serifada nos títulos. */
+/* Homepage e página de login do JustHold: escuro; títulos serifados no estilo da Resend, texto em Inter. */
 :root {
   --bg: #000;
   --panel: #0a0a0b;
@@ -9,7 +9,10 @@
   --dim: #6b6b70;
   --up: #089981;
   --down: #f23645;
-  --serif: "Instrument Serif", "Times New Roman", serif;
+  /* títulos: Newsreader no tamanho de título, a gratuita mais próxima da Domaine Display da Resend */
+  --display: "Newsreader", "Times New Roman", serif;
+  /* degradê dos títulos, como na Resend: branco em cima, cinza embaixo */
+  --title-gradient: linear-gradient(180deg, #fff 35%, rgba(255, 255, 255, .55) 100%);
   /* ritmo vertical: o mesmo espaço acima e abaixo de cada linha divisória */
   --s-section: clamp(56px, 7vw, 88px);
   --s-group: 32px;
@@ -72,7 +75,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 74%, transparent 100%);
   mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 74%, transparent 100%);
 }
-.hero h1 { position: relative; z-index: 2; margin: 0; padding: .18em 0; /* line-height: 1 corta ascendentes e descendentes fora da caixa do gradiente; o padding dá folga */ font: 400 clamp(52px, 8.5vw, 104px)/1 var(--serif); letter-spacing: -.015em; background: linear-gradient(180deg, #fff 30%, #9c9ca2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* padding embaixo: a entrelinha de 100% cortaria o "g" fora da caixa do degradê */
+.hero h1 { position: relative; z-index: 2; margin: 0; padding: 0 0 .1em; white-space: nowrap;
+  font: 400 clamp(44px, calc((100vw - 32px) / 5.4), 72px)/1 var(--display); font-variation-settings: "opsz" 72; letter-spacing: -.01em;
+  background: var(--title-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .pill { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 5px 12px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 13px; color: var(--muted); background: rgba(255, 255, 255, .03); }
 .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 10px var(--up); }
 .pill b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -80,7 +86,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* seções */
 .section { max-width: 1160px; margin: 0 auto; padding: var(--s-section) 16px; border-top: 1px solid var(--line); }
-.section h2 { margin: 0 0 14px; font: 400 clamp(38px, 5vw, 60px)/1.05 var(--serif); letter-spacing: -.01em; }
+.section h2 { margin: 0 0 14px; font: 400 clamp(38px, 5vw, 60px)/1.05 var(--display); letter-spacing: -.01em; }
 .section .sub { margin: 0 0 48px; max-width: 560px; color: var(--muted); font-size: 17px; }
 
 .closing { text-align: center; }
@@ -99,7 +105,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* página de login */
 .auth { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 40px 16px 80px; }
 .auth-box { width: min(400px, 100%); }
-.auth-box h1 { margin: 0 0 8px; font: 400 44px/1.05 var(--serif); text-align: center; }
+.auth-box h1 { margin: 0 0 8px; padding-bottom: .08em; font: 400 46px/1.05 var(--display); font-variation-settings: "opsz" 72; letter-spacing: -.01em; text-align: center; background: var(--title-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .auth-box .sub { margin: 0 0 30px; text-align: center; color: var(--muted); font-size: 15px; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; margin-bottom: 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
 .tabs button { height: 36px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 14px; }
@@ -121,9 +127,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
      --board-top e --board-h vêm do xadrez.js; os valores reserva valem até o 3D carregar. */
   .hero { align-items: start; }
   .hero-text { align-self: start; margin-top: var(--board-top, calc(min(74vh, 660px) * .245)); }
-  /* tamanho: o que faz o título ocupar a altura do tabuleiro, limitado pela largura da coluna
-     ("é estratégia." mede ~4em), para nunca quebrar em três linhas */
-  .hero h1 { white-space: nowrap; font-size: clamp(56px, calc((var(--board-h, calc(min(74vh, 660px) * .535)) - 46px) / 2.36), min(132px, calc((min(100vw, 1192px) - 56px) / 2.1 / 4.05))); }
+  /* tamanho: o que faz as duas linhas ocuparem a altura do tabuleiro, limitado pela largura da
+     coluna ("é estratégia." mede ~5,1em), para nunca encostar no tabuleiro */
+  .hero h1 { font-size: clamp(56px, calc((var(--board-h, calc(min(74vh, 660px) * .535)) - 46px) / 2.2), min(128px, calc((min(100vw, 1192px) - 56px) / 2.1 / 5.3))); }
   .hero .board { height: min(74vh, 660px); margin: 0 -6vw 0 -20px; max-width: none; }
 }
 @media (max-width: 899px) {
