@@ -1,9 +1,17 @@
 {
-  // Gráfico publicado como site estático na Cloudflare (Workers + assets).
-  // Publicar: npx wrangler deploy
+  // Site do JustHold na Cloudflare: homepage, gráfico e API de contas (Workers + assets + D1).
+  // Publicar: npx wrangler d1 migrations apply justhold --remote && npx wrangler deploy
   "name": "justhold",
+  "main": "src/worker.js",
   "compatibility_date": "2026-11-02",
-  "assets": { "directory": "./grafico" },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "justhold", "database_id": "17a39828-63ec-4cb8-b004-dca46e35b7d1" }
+  ],
   "routes": [
     { "pattern": "justhold.ai", "custom_domain": true },
     { "pattern": "www.justhold.ai", "custom_domain": true }

@@ -1,6 +1,7 @@
 import { INTERVAL_MS, fetchKlines, fetchSymbolsInfo, fetchAllSymbols, fetchTradingDay, openStream } from './api.js';
 import { calc, NAMES, periodStart } from './indicators.js';
 import { Ruler } from './ruler.js';
+import { me, getPrefs, logout, loginUrl } from '/js/conta.js';
 
 const LW = window.LightweightCharts;
 
@@ -38,8 +39,56 @@ const store = {
   },
   set(k, v) {
     try { localStorage.setItem('grafico.' + k, JSON.stringify(v)); } catch {}
+    if (user) uploadPrefsSoon();
   },
 };
+
+// ---------- conta: preferências salvas no servidor ----------
+// Logado, tudo o que o gráfico guarda (watchlist, médias, linhas, layout...) vai para a
+// conta; ao abrir em outro computador, as preferências da conta substituem as locais.
+function localPrefs() {
+  const out = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith('grafico.')) out[k.slice(8)] = JSON.parse(localStorage.getItem(k));
+    }
+  } catch {}
+  return out;
+}
+function applyPrefs(prefs) {
+  try {
+    for (const k of Object.keys(localPrefs())) localStorage.removeItem('grafico.' + k);
+    for (const [k, v] of Object.entries(prefs)) localStorage.setItem('grafico.' + k, JSON.stringify(v));
+  } catch {}
+}
+let uploadTimer = null;
+function uploadPrefsSoon(delay = 1200) {
+  clearTimeout(uploadTimer);
+  uploadTimer = setTimeout(flushPrefs, delay);
+}
+function flushPrefs() {
+  if (!user || uploadTimer == null) return;
+  clearTimeout(uploadTimer);
+  uploadTimer = null;
+  // keepalive: o envio termina mesmo se a página estiver fechando
+  fetch('/api/prefs', { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs: localPrefs() }) })
+    .catch(console.error);
+}
+addEventListener('pagehide', flushPrefs);
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushPrefs(); });
+
+let user = null;
+try {
+  user = await Promise.race([me(), new Promise(r => setTimeout(() => r(null), 2500))]);
+  if (user) {
+    const { prefs } = await getPrefs();
+    if (prefs) applyPrefs(prefs);
+    else uploadPrefsSoon(0); // primeira vez: a conta começa com o que já estava neste navegador
+  }
+} catch (e) {
+  console.error(e);
+}
 
 const state = {
   symbol: store.get('symbol', 'BTCBRL'),
@@ -862,6 +911,30 @@ $('#wl-toggle').addEventListener('click', () => {
   store.set('wlHidden', $('#app').classList.contains('wl-hidden'));
 });
 if (store.get('wlHidden', false)) $('#app').classList.add('wl-hidden');
+
+// Conta: "Entrar" quando deslogado; logado, a inicial do e-mail abre um menu com "Sair".
+function renderAccount() {
+  const box = $('#account');
+  if (!user) {
+    box.replaceChildren(h('a', { class: 'tb-btn', href: loginUrl(), title: 'Entrar para salvar suas configurações na conta' }, 'Entrar'));
+    return;
+  }
+  const menu = h('div', { class: 'acc-menu', hidden: true },
+    h('div', { class: 'acc-email' }, user.email),
+    h('div', { class: 'acc-note' }, 'Suas configurações são salvas nesta conta.'),
+    h('button', {
+      onclick: async () => {
+        flushPrefs();
+        await logout().catch(console.error);
+        location.reload();
+      },
+    }, 'Sair'));
+  const btn = h('button', { class: 'tb-btn icon acc-btn', title: user.email, onclick: e => { e.stopPropagation(); menu.hidden = !menu.hidden; } },
+    h('span', { class: 'acc-avatar' }, user.email[0].toUpperCase()));
+  document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.hidden = true; });
+  box.replaceChildren(btn, menu);
+}
+renderAccount();
 
 // Divisórias arrastáveis: largura da watchlist e altura do painel de detalhes.
 function splitter(el, axis, key, apply) {
