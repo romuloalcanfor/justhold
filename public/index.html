@@ -12,18 +12,19 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="site.css">
 <script type="importmap">{ "imports": { "three": "/vendor/three.module.min.js" } }</script>
+<!-- o three.js é o arquivo mais pesado: começa a baixar já, em paralelo com o resto -->
+<link rel="modulepreload" href="/vendor/three.module.min.js">
+<link rel="modulepreload" href="/js/xadrez.js">
+<link rel="modulepreload" href="/vendor/RoomEnvironment.js">
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 <header class="nav" id="nav">
   <a class="logo" href="/" aria-label="JustHold"><img src="img/logo.svg" alt="JustHold"></a>
-  <nav class="links">
-    <a href="/grafico/">Gráfico</a>
-    <a href="#recursos">Recursos</a>
-  </nav>
   <span class="spacer"></span>
   <div class="account" id="account">
-    <a class="btn link sm" href="/entrar/">Entrar</a>
-    <a class="btn primary sm" href="/grafico/">Abrir o gráfico</a>
+    <a class="btn uline sm" href="/entrar/">Entrar</a>
+    <a class="btn ring sm" href="/grafico/">Abrir o gráfico</a>
   </div>
 </header>
 
@@ -36,49 +37,32 @@
     <div class="board" id="board" aria-hidden="true"></div>
   </section>
 
-  <section class="section" id="recursos">
-    <h2>Cada lance no seu tempo.</h2>
-    <p class="sub">O essencial para acompanhar o mercado com calma, direto da Binance, no seu navegador.</p>
-    <div class="grid">
-      <div class="card">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 15l4-5 3 3 4-6 3 4"/><path d="M3 3v14h14"/></svg></div>
-        <h3>Ao vivo, candle a candle</h3>
-        <p>Preços em tempo real da Binance, do gráfico de 1 minuto ao mensal, com contagem regressiva do candle.</p>
-      </div>
-      <div class="card">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14c3-1 4-6 7-8s5-2 9-3"/><path d="M2 17c4 0 7-2 10-5s4-4 6-4"/></svg></div>
-        <h3>Médias que importam</h3>
-        <p>A média de 200 semanas sobre qualquer tempo gráfico, médias que mudam de cor com a tendência e régua para medir variação.</p>
-      </div>
-      <div class="card">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5"/></svg></div>
-        <h3>Do seu jeito, em qualquer lugar</h3>
-        <p>Watchlist, médias, linhas e layout ficam salvos na sua conta e aparecem iguais em qualquer computador.</p>
-      </div>
-    </div>
-  </section>
-
   <section class="section closing">
-    <h2>Just hold.</h2>
+    <h2 class="sr-only">Just hold.</h2>
+    <div id="logo-anim"></div>
     <div class="cta">
-      <a class="btn primary" href="/grafico/">Abrir o gráfico</a>
-      <a class="btn ghost" href="/entrar/?modo=criar" id="cta-signup-2">Criar conta grátis</a>
+      <a class="btn ring" href="/grafico/">Abrir o gráfico</a>
+      <a class="btn uline" href="/entrar/?modo=criar" id="cta-signup-2">Criar conta grátis</a>
     </div>
   </section>
 </main>
 
 <footer class="footer">
   <img src="img/logo.svg" alt="JustHold">
-  <span>Dados públicos da Binance.</span>
   <span class="spacer"></span>
-  <span>Nada aqui é recomendação de investimento.</span>
 </footer>
 
 <script type="module">
-  import { mountChess } from './js/xadrez.js';
   import { me, logout } from './js/conta.js';
+  import { mountLogo } from './js/logo-anim.js';
 
-  try { mountChess(document.getElementById('board')); } catch (e) { console.error(e); }
+  // a logo do topo se escreve ao abrir; se algo falhar, volta a imagem normal
+  const navLogo = document.querySelector('.nav .logo');
+  mountLogo(navLogo, { loop: false, stroke: 2.4 }).catch(e => { console.error(e); navLogo.classList.add('fallback'); });
+  mountLogo(document.getElementById('logo-anim')).catch(console.error);
+
+  // o tabuleiro carrega à parte, para não segurar o resto da página
+  import('./js/xadrez.js').then(m => m.mountChess(document.getElementById('board'))).catch(console.error);
 
   const nav = document.getElementById('nav');
   addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
@@ -87,11 +71,11 @@
   me().then(user => {
     if (!user) return;
     const acc = document.getElementById('account');
-    const out = Object.assign(document.createElement('button'), { className: 'btn link sm', textContent: 'Sair' });
+    const out = Object.assign(document.createElement('button'), { className: 'btn uline sm', textContent: 'Sair' });
     out.onclick = async () => { await logout(); location.reload(); };
     const who = Object.assign(document.createElement('span'), { textContent: user.email });
     who.style.color = 'var(--muted)';
-    acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn primary sm', href: '/grafico/', textContent: 'Abrir o gráfico' }));
+    acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn ring sm', href: '/grafico/', textContent: 'Abrir o gráfico' }));
     document.getElementById('cta-signup-2')?.remove();
   });
 
