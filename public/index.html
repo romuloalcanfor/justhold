@@ -32,11 +32,6 @@
     <div class="hero-text">
       <a class="pill" href="/grafico/" id="ticker"><span class="dot"></span>BTC/USDT <b id="tk-price">—</b> <span id="tk-chg"></span></a>
       <h1>Paciência<br>é estratégia.</h1>
-      <p class="lead">Gráfico de cripto ao vivo, sem distração. Médias, régua e watchlist do seu jeito, salvos na sua conta.</p>
-      <div class="cta">
-        <a class="btn primary" href="/grafico/">Abrir o gráfico</a>
-        <a class="btn ghost" href="/entrar/?modo=criar" id="cta-signup">Criar conta grátis</a>
-      </div>
     </div>
     <div class="board" id="board" aria-hidden="true"></div>
   </section>
@@ -97,7 +92,7 @@
     const who = Object.assign(document.createElement('span'), { textContent: user.email });
     who.style.color = 'var(--muted)';
     acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn primary sm', href: '/grafico/', textContent: 'Abrir o gráfico' }));
-    for (const id of ['cta-signup', 'cta-signup-2']) document.getElementById(id).remove();
+    document.getElementById('cta-signup-2')?.remove();
   });
 
   // Preço do BTC ao vivo na pílula acima do título.

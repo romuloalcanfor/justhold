@@ -53,9 +53,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 74%, transparent 100%);
   mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 74%, transparent 100%);
 }
-.hero h1 { position: relative; z-index: 2; margin: 0; font: 400 clamp(52px, 8.5vw, 104px)/1 var(--serif); letter-spacing: -.015em; background: linear-gradient(180deg, #fff 30%, #9c9ca2); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hero p.lead { position: relative; z-index: 2; max-width: 560px; margin: 22px auto 0; color: var(--muted); font-size: 18px; }
-.hero .cta { position: relative; z-index: 2; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+.hero h1 { position: relative; z-index: 2; margin: 0; padding: .18em 0; /* line-height: 1 corta ascendentes e descendentes fora da caixa do gradiente; o padding dá folga */ font: 400 clamp(52px, 8.5vw, 104px)/1 var(--serif); letter-spacing: -.015em; background: linear-gradient(180deg, #fff 30%, #9c9ca2); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .pill { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; padding: 5px 12px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 13px; color: var(--muted); background: rgba(255, 255, 255, .03); }
 .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 10px var(--up); }
 .pill b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -84,7 +82,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .nav .links { display: none; }
   .grid { grid-template-columns: 1fr; }
   .section { padding: 72px 16px; }
-  .hero p.lead { font-size: 16px; }
   .board { margin-bottom: -20px; }
 }
 
@@ -108,8 +105,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero-text { position: relative; z-index: 2; }
 @media (min-width: 900px) {
   .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: 24px; max-width: 1260px; margin: 0 auto; padding: 40px max(16px, calc((100vw - 1160px) / 2)) 110px; text-align: left; min-height: calc(100vh - 64px); max-height: 900px; }
-  .hero-text .lead { margin-left: 0; }
-  .hero-text .cta { justify-content: flex-start; }
   .hero .board { height: min(76vh, 680px); margin: 0 -6vw 0 -20px; max-width: none; }
 }
 @media (max-width: 899px) {
