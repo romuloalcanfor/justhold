@@ -105,4 +105,6 @@ O JustHold mostra dados públicos de mercado e não é recomendação de investi
 
 ## Licença
 
-[MIT](LICENSE) © Romulo Alcanfor
+O gráfico e o restante do código estão sob a licença [MIT](LICENSE) © Romulo Alcanfor.
+
+A animação do xadrez 3D, a logo animada e a marca JustHold **não** são open source: todos os direitos reservados. Veja o [NOTICE](NOTICE.md).
