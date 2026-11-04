@@ -15,7 +15,8 @@
 <header class="nav">
   <a class="logo" href="/" aria-label="JustHold"><img src="/img/logo.svg" alt="JustHold"></a>
   <span class="spacer"></span>
-  <a class="btn ring sm" href="/grafico/">Abrir o gráfico</a>
+  <div id="lang"></div>
+  <a class="btn ring sm" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
 </header>
 
 <main class="auth">
@@ -23,27 +24,32 @@
     <h1 id="title">Bem-vindo de volta</h1>
     <p class="sub" id="subtitle">Entre para usar suas configurações salvas.</p>
     <div class="tabs" role="tablist">
-      <button type="button" role="tab" data-mode="entrar">Entrar</button>
-      <button type="button" role="tab" data-mode="criar">Criar conta</button>
+      <button type="button" role="tab" data-mode="entrar" data-i18n="auth.tabLogin">Entrar</button>
+      <button type="button" role="tab" data-mode="criar" data-i18n="auth.tabSignup">Criar conta</button>
     </div>
-    <label class="field"><span>E-mail</span><input id="email" type="email" autocomplete="email" required></label>
-    <label class="field"><span>Senha</span><input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+    <label class="field"><span data-i18n="auth.email">E-mail</span><input id="email" type="email" autocomplete="email" required></label>
+    <label class="field"><span data-i18n="auth.password">Senha</span><input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
     <p class="form-error" id="error" role="alert"></p>
     <button class="btn primary" id="submit" type="submit">Entrar</button>
-    <p class="note" id="note">Suas médias, watchlist e linhas vão junto com você para qualquer computador.</p>
+    <p class="note" id="note" data-i18n="auth.note">Suas médias, watchlist e linhas vão junto com você para qualquer computador.</p>
   </form>
 </main>
 
 <script type="module">
   import { login, signup, me } from '/js/conta.js';
+  import { t, applyI18n, langSwitch } from '/js/i18n.js';
+
+  applyI18n();
+  document.title = t('meta.loginTitle');
+  document.getElementById('lang').replaceWith(langSwitch());
 
   const params = new URLSearchParams(location.search);
   // só volta para páginas do próprio site
   const back = (params.get('volta') ?? '').match(/^\/(?!\/)/) ? params.get('volta') : '/grafico/';
   const $ = id => document.getElementById(id);
   const TEXT = {
-    entrar: { title: 'Bem-vindo de volta', sub: 'Entre para usar suas configurações salvas.', btn: 'Entrar', ac: 'current-password' },
-    criar: { title: 'Crie sua conta', sub: 'Grátis. Só e-mail e senha.', btn: 'Criar conta', ac: 'new-password' },
+    entrar: { title: t('auth.loginTitle'), sub: t('auth.loginSub'), btn: t('auth.tabLogin'), ac: 'current-password' },
+    criar: { title: t('auth.signupTitle'), sub: t('auth.signupSub'), btn: t('auth.tabSignup'), ac: 'new-password' },
   };
   let mode = params.get('modo') === 'criar' ? 'criar' : 'entrar';
 
@@ -54,7 +60,7 @@
     $('subtitle').textContent = t.sub;
     $('submit').textContent = t.btn;
     $('password').autocomplete = t.ac;
-    $('password').placeholder = m === 'criar' ? 'Pelo menos 8 caracteres' : '';
+    $('password').placeholder = m === 'criar' ? t('auth.passwordHint') : '';
     $('error').textContent = '';
     document.querySelectorAll('.tabs button').forEach(b => {
       b.classList.toggle('on', b.dataset.mode === m);
@@ -69,8 +75,8 @@
   $('form').addEventListener('submit', async e => {
     e.preventDefault();
     const email = $('email').value.trim(), password = $('password').value;
-    if (!email || !password) { $('error').textContent = 'Preencha e-mail e senha.'; return; }
-    if (mode === 'criar' && password.length < 8) { $('error').textContent = 'A senha precisa ter pelo menos 8 caracteres.'; return; }
+    if (!email || !password) { $('error').textContent = t('auth.fill'); return; }
+    if (mode === 'criar' && password.length < 8) { $('error').textContent = t('err.shortPassword'); return; }
     $('submit').disabled = true;
     $('error').textContent = '';
     try {

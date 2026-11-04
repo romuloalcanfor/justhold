@@ -16,7 +16,7 @@ export default {
       return await route(request, env, url);
     } catch (e) {
       console.error(e);
-      return json({ error: 'Erro no servidor. Tente de novo.' }, 500);
+      return json({ error: 'Erro no servidor. Tente de novo.', code: 'server' }, 500);
     }
   },
 };
@@ -38,7 +38,7 @@ async function route(request, env, url) {
   }
   if (path === '/api/prefs') {
     const user = await currentUser(request, env);
-    if (!user) return json({ error: 'Não logado.' }, 401);
+    if (!user) return json({ error: 'Não logado.', code: 'notLogged' }, 401);
     if (method === 'GET') {
       const row = await env.DB.prepare('SELECT data, updated_at FROM prefs WHERE user_id = ?').bind(user.id).first();
       return json({ prefs: row ? JSON.parse(row.data) : null, updatedAt: row?.updated_at ?? null });
@@ -60,11 +60,11 @@ const validEmail = e => e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 async function signup(request, env, url) {
   const { email, password } = await readCredentials(request);
-  if (!validEmail(email)) return json({ error: 'E-mail inválido.' }, 400);
-  if (password.length < 8) return json({ error: 'A senha precisa ter pelo menos 8 caracteres.' }, 400);
-  if (password.length > 200) return json({ error: 'Senha longa demais.' }, 400);
+  if (!validEmail(email)) return json({ error: 'E-mail inválido.', code: 'badEmail' }, 400);
+  if (password.length < 8) return json({ error: 'A senha precisa ter pelo menos 8 caracteres.', code: 'shortPassword' }, 400);
+  if (password.length > 200) return json({ error: 'Senha longa demais.', code: 'longPassword' }, 400);
   const exists = await env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first();
-  if (exists) return json({ error: 'Já existe uma conta com esse e-mail. Entre com ela.' }, 409);
+  if (exists) return json({ error: 'Já existe uma conta com esse e-mail. Entre com ela.', code: 'exists' }, 409);
   const salt = randomHex(16);
   const hash = await hashPassword(password, salt);
   const user = await env.DB.prepare('INSERT INTO users (email, pass_hash, pass_salt, created_at) VALUES (?, ?, ?, ?) RETURNING id')
@@ -76,7 +76,7 @@ async function login(request, env, url) {
   const { email, password } = await readCredentials(request);
   const since = Date.now() - FAILURE_WINDOW_MS;
   const fails = await env.DB.prepare('SELECT COUNT(*) AS n FROM login_failures WHERE email = ? AND at > ?').bind(email, since).first();
-  if (fails.n >= MAX_FAILURES) return json({ error: 'Muitas tentativas. Espere 15 minutos e tente de novo.' }, 429);
+  if (fails.n >= MAX_FAILURES) return json({ error: 'Muitas tentativas. Espere 15 minutos e tente de novo.', code: 'tooMany' }, 429);
 
   const user = await env.DB.prepare('SELECT id, pass_hash, pass_salt FROM users WHERE email = ?').bind(email).first();
   // Mesmo sem usuário calculamos um hash, para a resposta não revelar quais e-mails têm conta.
@@ -86,7 +86,7 @@ async function login(request, env, url) {
       env.DB.prepare('INSERT INTO login_failures (email, at) VALUES (?, ?)').bind(email, Date.now()),
       env.DB.prepare('DELETE FROM login_failures WHERE at < ?').bind(since),
     ]);
-    return json({ error: 'E-mail ou senha incorretos.' }, 401);
+    return json({ error: 'E-mail ou senha incorretos.', code: 'wrong' }, 401);
   }
   await env.DB.prepare('DELETE FROM login_failures WHERE email = ?').bind(email).run();
   return startSession(env, url, user.id, { email });

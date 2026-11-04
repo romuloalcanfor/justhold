@@ -170,6 +170,11 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 @media (max-width: 760px) { .splitter.x { display: none; } }
 .wl-row { user-select: none; }
 .wl-row.dragging { z-index: 2; background: var(--hover); box-shadow: 0 2px 10px rgba(0, 0, 0, .5); outline: 1px solid var(--accent); }
+/* idioma: PT · EN, o atual aceso */
+.lang-switch { display: inline-flex; align-items: center; gap: 1px; margin: 0 4px; padding: 2px; border: 1px solid var(--border); border-radius: 5px; }
+.lang-switch button { height: 22px; min-width: 26px; padding: 0 5px; border: 0; border-radius: 3px; background: none; color: var(--muted); font: 500 11px/1 var(--font); letter-spacing: .04em; cursor: pointer; }
+.lang-switch button:hover { color: var(--text); }
+.lang-switch button.on { background: var(--hover); color: var(--text); cursor: default; }
 #account { position: relative; }
 #account a.tb-btn { color: var(--text); text-decoration: none; }
 .acc-avatar { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #2a2e39; color: var(--text); font-size: 12px; font-weight: 600; }

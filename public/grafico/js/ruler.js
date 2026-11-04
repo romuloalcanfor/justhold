@@ -1,4 +1,5 @@
 // Régua de medição (preço, %, barras, tempo, volume), no estilo do TradingView.
+import { t } from '/js/i18n.js';
 const NS = 'http://www.w3.org/2000/svg';
 const COLORS = { up: '#2962ff', down: '#f23645' };
 
@@ -127,7 +128,7 @@ export class Ruler {
     const { delta, pct: fmtPct, vol: fmtVol, ticks } = this.fmt;
     this.labelEl.innerHTML =
       `<div>${delta(dp)} (${fmtPct(pct)}) ${ticks(dp)}</div>` +
-      `<div>${ib - ia} barras, ${fmtDuration(this.b.t - this.a.t)}</div>` +
+      `<div>${ib - ia} ${t('chart.bars')}, ${fmtDuration(this.b.t - this.a.t)}</div>` +
       `<div>Vol ${fmtVol(vol)}</div>`;
     this.labelEl.style.background = color;
     this.labelEl.hidden = false;

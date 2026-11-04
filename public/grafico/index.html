@@ -10,19 +10,20 @@
 <body>
 <div id="app">
   <header id="topbar">
-    <button id="symbol-btn" class="tb-btn symbol" title="Buscar símbolo">
+    <button id="symbol-btn" class="tb-btn symbol" data-i18n-title="chart.searchSymbol" title="Buscar símbolo">
       <svg viewBox="0 0 18 18" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M7.5 13a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm4-1.5L16 16"/></svg>
       <span id="symbol-label"></span>
     </button>
     <div class="sep"></div>
     <div id="tf-group"></div>
     <div class="sep"></div>
-    <button id="ind-btn" class="tb-btn" title="Indicadores">
+    <button id="ind-btn" class="tb-btn" data-i18n-title="chart.indicators" title="Indicadores">
       <svg viewBox="0 0 28 28" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 20c3-1 4-6 6-10s3-5 5-5M9 13h6M17 13l6 7M23 13l-6 7"/></svg>
-      <span>Indicadores</span>
+      <span data-i18n="chart.indicators">Indicadores</span>
     </button>
     <div class="spacer"></div>
-    <span id="status" title="Conexão ao vivo"></span>
+    <span id="status" data-i18n-title="chart.live" title="Conexão ao vivo"></span>
+    <div id="lang"></div>
     <div id="account"></div>
     <button id="wl-toggle" class="tb-btn icon" title="Watchlist">
       <svg viewBox="0 0 28 28" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M6 8h16M6 14h16M6 20h10"/></svg>
@@ -30,17 +31,17 @@
   </header>
 
   <nav id="tools">
-    <button class="tool active" data-tool="cursor" title="Cruz (Esc)">
+    <button class="tool active" data-tool="cursor" data-i18n-title="chart.cursor" title="Cruz (Esc)">
       <svg viewBox="0 0 28 28" width="28" height="28"><path fill="currentColor" d="M13.5 5h1v8.5H23v1h-8.5V23h-1v-8.5H5v-1h8.5z"/></svg>
     </button>
-    <button class="tool" data-tool="measure" title="Régua (Shift + clique)">
+    <button class="tool" data-tool="measure" data-i18n-title="chart.ruler" title="Régua (Shift + clique)">
       <svg viewBox="0 0 28 28" width="28" height="28"><g fill="none" stroke="currentColor"><path d="M4.5 18.5 18.5 4.5l5 5-14 14z"/><path d="M8.5 14.5l2 2M11.5 11.5l3 3M14.5 8.5l2 2M17.5 5.5l2 2"/></g></svg>
     </button>
-    <button class="tool" data-tool="hline" title="Linha horizontal (Alt + H)">
+    <button class="tool" data-tool="hline" data-i18n-title="chart.hline" title="Linha horizontal (Alt + H)">
       <svg viewBox="0 0 28 28" width="28" height="28"><g fill="none" stroke="currentColor"><path d="M4 14.5h20"/><circle cx="14" cy="14.5" r="2" fill="#0f0f0f"/></g></svg>
     </button>
     <div class="tool-sep"></div>
-    <button class="tool" id="clear-drawings" title="Remover desenhos">
+    <button class="tool" id="clear-drawings" data-i18n-title="chart.clear" title="Remover desenhos">
       <svg viewBox="0 0 28 28" width="28" height="28"><path fill="none" stroke="currentColor" d="M8.5 9.5v13h11v-13M6 9.5h16M11.5 9.5v-3h5v3M12 12.5v7M16 12.5v7"/></svg>
     </button>
   </nav>
@@ -53,22 +54,22 @@
     <div id="countdown" hidden></div>
     <div id="legend"></div>
     <div id="scale-btns">
-      <button id="log-btn" title="Escala logarítmica">log</button>
-      <button id="auto-btn" class="active" title="Autoescala">auto</button>
+      <button id="log-btn" data-i18n-title="chart.log" title="Escala logarítmica">log</button>
+      <button id="auto-btn" class="active" data-i18n-title="chart.auto" title="Autoescala">auto</button>
     </div>
   </main>
 
   <aside id="watchlist">
-    <div id="wl-resize-x" class="splitter x" title="Arraste para mudar a largura"></div>
+    <div id="wl-resize-x" class="splitter x" data-i18n-title="chart.dragWidth" title="Arraste para mudar a largura"></div>
     <div class="wl-head">
       <span>Watchlist</span>
-      <button id="wl-add" class="tb-btn icon" title="Adicionar símbolo">
+      <button id="wl-add" class="tb-btn icon" data-i18n-title="chart.addSymbol" title="Adicionar símbolo">
         <svg viewBox="0 0 28 28" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M14 7v14M7 14h14"/></svg>
       </button>
     </div>
-    <div class="wl-cols"><span>Símbolo</span><span>Último</span><span>Var</span><span>Var%</span></div>
+    <div class="wl-cols"><span data-i18n="chart.colSymbol">Símbolo</span><span data-i18n="chart.colLast">Último</span><span data-i18n="chart.colChg">Var</span><span data-i18n="chart.colChgPct">Var%</span></div>
     <div id="wl-rows"></div>
-    <div id="wl-resize-y" class="splitter y" title="Arraste para mudar a altura"></div>
+    <div id="wl-resize-y" class="splitter y" data-i18n-title="chart.dragHeight" title="Arraste para mudar a altura"></div>
     <div id="wl-detail"></div>
   </aside>
 </div>

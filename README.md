@@ -12,6 +12,10 @@
 </p>
 
 <p align="center">
+  <b>Português</b> · <a href="README.en.md">English</a>
+</p>
+
+<p align="center">
   <b>Gráfico de cripto ao vivo, direto no navegador.</b><br>
   Grátis, open source e sem instalar nada. Feito por quem cansou de pagar assinatura para ver um candle.
 </p>
@@ -42,6 +46,7 @@ O **JustHold** é isso: um gráfico rápido, bonito e com os indicadores que imp
 - 📏 **Régua de medição** no estilo TradingView: variação de preço, %, barras e tempo
 - ⭐ **Watchlist** com seus pares, variação do dia e arrastar para reordenar
 - 👤 **Conta opcional** (e-mail e senha) para guardar suas preferências em qualquer aparelho
+- 🌎 **Português e inglês**, com horário no seu fuso e funcionando também fora do Brasil
 - ⚡ **Leve**: HTML, CSS e JavaScript puros, sem framework e sem etapa de build
 
 ## Como funciona
@@ -49,7 +54,7 @@ O **JustHold** é isso: um gráfico rápido, bonito e com os indicadores que imp
 | Parte | Tecnologia |
 | --- | --- |
 | Gráfico | [Lightweight Charts](https://github.com/tradingview/lightweight-charts) (TradingView, Apache 2.0) |
-| Dados | API pública da [Binance](https://binance-docs.github.io/apidocs/spot/en/) (REST + WebSocket) |
+| Dados | API pública de dados de mercado da [Binance](https://developers.binance.com/docs/binance-spot-api-docs/faqs/market_data_only) (`data-api.binance.vision`, REST + WebSocket) |
 | Homepage | HTML/CSS + [three.js](https://threejs.org) |
 | Hospedagem e contas | [Cloudflare Workers](https://workers.cloudflare.com) + D1 |
 

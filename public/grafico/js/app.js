@@ -2,6 +2,11 @@ import { INTERVAL_MS, fetchKlines, fetchSymbolsInfo, fetchAllSymbols, fetchTradi
 import { calc, NAMES, periodStart } from './indicators.js';
 import { Ruler } from './ruler.js';
 import { me, getPrefs, logout, loginUrl } from '/js/conta.js';
+import { t, lang, locale, applyI18n, langSwitch } from '/js/i18n.js';
+
+applyI18n();
+document.title = t('meta.chartTitle');
+document.getElementById('lang').replaceWith(langSwitch('tb-lang'));
 
 const LW = window.LightweightCharts;
 
@@ -10,7 +15,8 @@ const C = {
   up: '#089981', down: '#f23645', upVol: 'rgba(8, 153, 129, 0.45)', downVol: 'rgba(242, 54, 69, 0.45)',
   accent: '#2962ff', cross: '#9598a1', crossLabel: '#363a45',
 };
-const BRT = -3 * 3600; // horário de Brasília (sem horário de verão desde 2019)
+// Fuso de quem abre o gráfico, em segundos (com o horário de verão de cada data).
+const tzOffset = ms => -new Date(ms).getTimezoneOffset() * 60;
 const INTRADAY = new Set(['1m', '5m', '15m', '1h', '4h']);
 const TIMEFRAMES = [['1m', '1m'], ['5m', '5m'], ['15m', '15m'], ['1h', '1h'], ['4h', '4h'], ['1d', 'D'], ['1w', 'W'], ['1M', 'M']];
 const TF_LABEL = Object.fromEntries(TIMEFRAMES);
@@ -30,7 +36,7 @@ const DEFAULT_WATCHLIST = [
 // Botões de período da barra inferior: [rótulo, tempo gráfico, dias visíveis (null = tudo)]
 const RANGES = [
   ['1D', '5m', 1], ['5D', '15m', 5], ['1M', '1h', 30], ['3M', '4h', 90], ['6M', '1d', 180],
-  ['YTD', '1d', 'ytd'], ['1A', '1d', 365], ['5A', '1w', 1826], ['Todos', '1w', null],
+  ['YTD', '1d', 'ytd'], [t('range.1Y'), '1d', 365], [t('range.5Y'), '1w', 1826], [t('range.all'), '1w', null],
 ];
 
 const store = {
@@ -91,7 +97,7 @@ try {
 }
 
 const state = {
-  symbol: store.get('symbol', 'BTCBRL'),
+  symbol: store.get('symbol', lang === 'pt' ? 'BTCBRL' : 'BTCUSDT'), // quem é de fora começa em dólar
   interval: store.get('interval', '1d'),
   watchlist: store.get('watchlist.v2', DEFAULT_WATCHLIST),
   indicators: store.get('indicators.v2', DEFAULT_INDICATORS),
@@ -119,26 +125,28 @@ function h(tag, attrs = {}, ...children) {
 }
 
 // ---------- formatação ----------
-let priceFmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let priceFmt = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtPrice = p => priceFmt.format(p);
-const pctFmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'exceptZero' });
+const pctFmt = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'exceptZero' });
 const fmtPct = x => pctFmt.format(x).replace('-', '−') + '%';
 // Volume no estilo do TradingView: 409,97K / 1,2M / 3,4B
-const volFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+const volFmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
 const fmtVol = v => {
   for (const [n, suf] of [[1e12, 'T'], [1e9, 'B'], [1e6, 'M'], [1e3, 'K']]) if (Math.abs(v) >= n) return volFmt.format(v / n) + suf;
   return volFmt.format(v);
 };
-const tickFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+const tickFmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 const fmtDelta = (x, f = fmtPrice) => (x > 0 ? '+' : x < 0 ? '−' : '') + f(Math.abs(x));
 const numFmts = new Map();
 const fmtWith = prec => {
-  if (!numFmts.has(prec)) numFmts.set(prec, new Intl.NumberFormat('pt-BR', { minimumFractionDigits: prec, maximumFractionDigits: prec }));
+  if (!numFmts.has(prec)) numFmts.set(prec, new Intl.NumberFormat(locale, { minimumFractionDigits: prec, maximumFractionDigits: prec }));
   return numFmts.get(prec);
 };
 
-const WD = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const WD = lang === 'pt' ? ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = lang === 'pt'
+  ? ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+  : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const pad = n => String(n).padStart(2, '0');
 function formatTime(t) {
   const d = new Date(t * 1000); // já deslocado para o fuso local, por isso lemos em UTC
@@ -148,7 +156,7 @@ function formatTime(t) {
   return INTRADAY.has(state.interval) ? `${day}   ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}` : day;
 }
 
-const toTime = ms => ms / 1000 + (INTRADAY.has(state.interval) ? BRT : 0);
+const toTime = ms => ms / 1000 + (INTRADAY.has(state.interval) ? tzOffset(ms) : 0);
 const candlePoint = b => ({ time: toTime(b.t), open: b.o, high: b.h, low: b.l, close: b.c });
 const volumePoint = b => ({ time: toTime(b.t), value: b.v, color: b.c >= b.o ? C.upVol : C.downVol });
 
@@ -165,7 +173,7 @@ const chart = LW.createChart(chartEl, {
   },
   rightPriceScale: { borderColor: C.border, scaleMargins: { top: 0.1, bottom: 0.18 } },
   timeScale: { borderColor: C.border, rightOffset: 10, barSpacing: 8, timeVisible: true, secondsVisible: false },
-  localization: { locale: 'pt-BR', timeFormatter: formatTime },
+  localization: { locale, timeFormatter: formatTime },
 });
 
 const priceFormat = () => ({ type: 'custom', formatter: fmtPrice, minMove: state.info?.tickSize ?? 0.01 });
@@ -233,7 +241,7 @@ async function load(range) {
     renderLegend();
   } catch (e) {
     console.error(e);
-    toast(`Não consegui carregar ${symbol}: ${e.message}`);
+    toast(t('chart.loadFail', { symbol, msg: e.message }));
   } finally {
     if (token === loadToken) state.loading = false;
   }
@@ -419,8 +427,8 @@ function renderLegend() {
   const ohlc = h('span', { class: 'lg-ohlc' });
   const refs = { o: h('span'), h: h('span'), l: h('span'), c: h('span'), chg: h('span'), vol: h('span'), ind: new Map() };
   ohlc.append(
-    h('span', {}, h('b', {}, 'Abr'), refs.o), h('span', {}, h('b', {}, 'Máx.'), refs.h),
-    h('span', {}, h('b', {}, 'Mín.'), refs.l), h('span', {}, h('b', {}, 'Fch'), refs.c), refs.chg,
+    h('span', {}, h('b', {}, t('chart.open')), refs.o), h('span', {}, h('b', {}, t('chart.high')), refs.h),
+    h('span', {}, h('b', {}, t('chart.low')), refs.l), h('span', {}, h('b', {}, t('chart.close')), refs.c), refs.chg,
   );
   const rows = [
     h('div', { class: 'lg-main' },
@@ -434,9 +442,9 @@ function renderLegend() {
     rows.push(h('div', { class: `lg-row${ind.visible ? '' : ' off'}` },
       h('span', { class: 'name' }, indName(ind)), val,
       h('span', { class: 'acts' },
-        h('button', { title: ind.visible ? 'Ocultar' : 'Mostrar', html: ICONS.eye, onclick: () => { ind.visible = !ind.visible; indicatorsChanged(); } }),
-        h('button', { title: 'Configurações', html: ICONS.gear, onclick: openIndicators }),
-        h('button', { title: 'Remover', html: ICONS.close, onclick: () => { state.indicators = state.indicators.filter(i => i !== ind); indicatorsChanged(); } }),
+        h('button', { title: ind.visible ? t('chart.hide') : t('chart.show'), html: ICONS.eye, onclick: () => { ind.visible = !ind.visible; indicatorsChanged(); } }),
+        h('button', { title: t('chart.settings'), html: ICONS.gear, onclick: openIndicators }),
+        h('button', { title: t('chart.remove'), html: ICONS.close, onclick: () => { state.indicators = state.indicators.filter(i => i !== ind); indicatorsChanged(); } }),
       ),
     ));
   }
@@ -569,9 +577,9 @@ let allSymbols = null;
 let symbolInfo = new Map();
 
 async function openSearch(mode, initial = '') {
-  const input = h('input', { class: 'search-input', placeholder: 'Buscar símbolo (ex.: BTCBRL)', value: initial, spellcheck: 'false' });
+  const input = h('input', { class: 'search-input', placeholder: t('chart.searchPlaceholder'), value: initial, spellcheck: 'false' });
   const list = h('div');
-  const close = openModal(mode === 'add' ? 'Adicionar à watchlist' : 'Buscar símbolo', h('div', {}, input, list));
+  const close = openModal(mode === 'add' ? t('chart.addToWatchlist') : t('chart.searchSymbol'), h('div', {}, input, list));
   input.focus();
   input.setSelectionRange(initial.length, initial.length);
   let results = [], sel = 0;
@@ -583,7 +591,7 @@ async function openSearch(mode, initial = '') {
   };
   const render = () => {
     const q = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (!allSymbols) { list.replaceChildren(h('div', { class: 'search-row' }, 'Carregando…')); return; }
+    if (!allSymbols) { list.replaceChildren(h('div', { class: 'search-row' }, t('chart.loading'))); return; }
     const rank = s => (s.symbol === q ? 0 : s.symbol.startsWith(q) ? 1 : s.base.startsWith(q) ? 2 : 3) * 10 +
       (s.quote === 'BRL' ? 0 : s.quote === 'USDT' ? 1 : 2);
     results = allSymbols.filter(s => !q || s.symbol.includes(q)).sort((a, b) => rank(a) - rank(b)).slice(0, 60);
@@ -606,19 +614,19 @@ async function openSearch(mode, initial = '') {
       for (const s of allSymbols) symbolInfo.set(s.symbol, s);
       render();
     } catch (e) {
-      toast(`Não consegui carregar a lista de símbolos: ${e.message}`);
+      toast(t('chart.symbolsFail', { msg: e.message }));
     }
   }
 }
 
 function openIndicators() {
   const body = h('div');
-  const TF_OPTS = [['', 'Gráfico'], ...TIMEFRAMES.filter(([tf]) => !['1m', '5m'].includes(tf))];
+  const TF_OPTS = [['', t('chart.indChart')], ...TIMEFRAMES.filter(([tf]) => !['1m', '5m'].includes(tf))];
   const render = () => {
     body.replaceChildren(
-      h('div', { class: 'ind-row ind-head' }, h('span'), h('span', {}, 'Tipo'), h('span', {}, 'Período'), h('span', {}, 'Tempo'), h('span', {}, 'Cor'), h('span'), h('span')),
+      h('div', { class: 'ind-row ind-head' }, h('span'), h('span', {}, t('chart.indType')), h('span', {}, t('chart.indPeriod')), h('span', {}, t('chart.indTf')), h('span', {}, t('chart.indColor')), h('span'), h('span')),
       ...state.indicators.map(ind => {
-        const slope = h('label', { class: 'cc', title: 'Verde quando sobe, vermelha quando desce' },
+        const slope = h('label', { class: 'cc', title: t('chart.indSlope') },
           h('input', { type: 'checkbox', checked: !!ind.slope, onchange: e => { ind.slope = e.target.checked; indicatorsChanged(); } }), 'CC');
         const typeSel = h('select', { onchange: e => { ind.type = e.target.value; indicatorsChanged(); } },
           ...Object.entries(NAMES).map(([k, v]) => h('option', { value: k, selected: k === ind.type }, v)));
@@ -634,7 +642,7 @@ function openIndicators() {
           tfSel,
           h('input', { type: 'color', value: ind.color, oninput: e => { ind.color = e.target.value; indicatorsChanged(); } }),
           slope,
-          h('button', { class: 'del', title: 'Remover', html: ICONS.close, onclick: () => { state.indicators = state.indicators.filter(i => i !== ind); indicatorsChanged(); render(); } }),
+          h('button', { class: 'del', title: t('chart.remove'), html: ICONS.close, onclick: () => { state.indicators = state.indicators.filter(i => i !== ind); indicatorsChanged(); render(); } }),
         );
       }),
       h('button', {
@@ -645,11 +653,11 @@ function openIndicators() {
           indicatorsChanged();
           render();
         },
-      }, '+ Média móvel'),
+      }, t('chart.addMa')),
     );
   };
   render();
-  openModal('Indicadores', body);
+  openModal(t('chart.indicators'), body);
 }
 
 // ---------- watchlist ----------
@@ -666,7 +674,7 @@ function renderWatchlist() {
     const row = h('div', { class: `wl-row${sym === state.symbol ? ' current' : ''}`, 'data-sym': sym, onclick: () => { if (performance.now() - wlDroppedAt > 300) setSymbol(sym); } },
       h('span', { class: 'wl-sym' }, h('i', { class: 'coin', style: `background:${coinColor(sym)}` }, sym[0]), sym), last, chg, pct,
       h('button', {
-        class: 'wl-del', title: 'Remover',
+        class: 'wl-del', title: t('chart.remove'),
         onclick: e => { e.stopPropagation(); state.watchlist = state.watchlist.filter(s => s !== sym); store.set('watchlist.v2', state.watchlist); renderWatchlist(); },
       }, '×'));
     wlRows.set(sym, { last, chg, pct });
@@ -759,7 +767,7 @@ function perfHtml(last) {
     const p = ((last - ref) / ref) * 100;
     return `<div class="pf ${p >= 0 ? 'pos' : 'neg'}"><b>${fmtPct(p)}</b><span>${label}</span></div>`;
   });
-  return `<div class="d-title">Desempenho</div><div class="perf">${cells.join('')}</div>`;
+  return `<div class="d-title">${t('chart.performance')}</div><div class="perf">${cells.join('')}</div>`;
 }
 
 function updateDetail(sym, last, open, vol) {
@@ -773,7 +781,7 @@ function updateDetail(sym, last, open, vol) {
     `<div class="d-name">${info ? `${info.base} / ${info.quote}` : ''} · BINANCE</div>` +
     `<div class="d-price">${f.format(last)} <small>${info?.quote ?? ''}</small></div>` +
     `<div class="d-chg ${cls}">${fmtDelta(d, x => f.format(x))} ${fmtPct((d / open) * 100)}</div>` +
-    (vol != null ? `<div class="d-vol"><span>Volume</span><span>${fmtVol(vol)} ${info?.base ?? ''}</span></div>` : '') +
+    (vol != null ? `<div class="d-vol"><span>${t('chart.volume')}</span><span>${fmtVol(vol)} ${info?.base ?? ''}</span></div>` : '') +
     perfHtml(last);
 }
 
@@ -916,19 +924,19 @@ if (store.get('wlHidden', false)) $('#app').classList.add('wl-hidden');
 function renderAccount() {
   const box = $('#account');
   if (!user) {
-    box.replaceChildren(h('a', { class: 'tb-btn', href: loginUrl(), title: 'Entrar para salvar suas configurações na conta' }, 'Entrar'));
+    box.replaceChildren(h('a', { class: 'tb-btn', href: loginUrl(), title: t('chart.loginHint') }, t('nav.login')));
     return;
   }
   const menu = h('div', { class: 'acc-menu', hidden: true },
     h('div', { class: 'acc-email' }, user.email),
-    h('div', { class: 'acc-note' }, 'Suas configurações são salvas nesta conta.'),
+    h('div', { class: 'acc-note' }, t('chart.savedInAccount')),
     h('button', {
       onclick: async () => {
         flushPrefs();
         await logout().catch(console.error);
         location.reload();
       },
-    }, 'Sair'));
+    }, t('nav.logout')));
   const btn = h('button', { class: 'tb-btn icon acc-btn', title: user.email, onclick: e => { e.stopPropagation(); menu.hidden = !menu.hidden; } },
     h('span', { class: 'acc-avatar' }, user.email[0].toUpperCase()));
   document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.hidden = true; });
@@ -1000,9 +1008,14 @@ window.addEventListener('blur', () => { shiftDown = false; });
 // barra inferior: períodos + relógio
 $('#ranges').replaceChildren(...RANGES.map(([label, tf, days]) => h('button', { onclick: () => applyRange(tf, days) }, label)));
 const clockEl = $('#clock');
+const utcLabel = off => {
+  const m = Math.abs(off / 60);
+  return `UTC${off < 0 ? '-' : '+'}${Math.floor(m / 60)}${m % 60 ? ':' + pad(m % 60) : ''}`;
+};
 const tick = () => {
-  const d = new Date(Date.now() + BRT * 1000);
-  clockEl.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC-3`;
+  const now = Date.now(), off = tzOffset(now);
+  const d = new Date(now + off * 1000);
+  clockEl.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} ${off ? utcLabel(off) : 'UTC'}`;
 };
 tick();
 setInterval(tick, 1000);

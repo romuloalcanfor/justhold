@@ -22,9 +22,10 @@
 <header class="nav" id="nav">
   <a class="logo" href="/" aria-label="JustHold"><img src="img/logo.svg" alt="JustHold"></a>
   <span class="spacer"></span>
+  <div id="lang"></div>
   <div class="account" id="account">
-    <a class="btn uline sm" href="/entrar/">Entrar</a>
-    <a class="btn ring sm" href="/grafico/">Abrir o gráfico</a>
+    <a class="btn uline sm" href="/entrar/" data-i18n="nav.login">Entrar</a>
+    <a class="btn ring sm" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
   </div>
 </header>
 
@@ -32,7 +33,7 @@
   <section class="hero">
     <div class="hero-text">
       <a class="pill" href="/grafico/" id="ticker"><span class="dot"></span>BTC/USDT <b id="tk-price">—</b> <span id="tk-chg"></span></a>
-      <h1>Paciência<br>é estratégia.</h1>
+      <h1 data-i18n-html="home.title">Paciência<br>é estratégia.</h1>
     </div>
     <div class="board" id="board" aria-hidden="true"></div>
   </section>
@@ -41,8 +42,8 @@
     <h2 class="sr-only">Just hold.</h2>
     <div id="logo-anim"></div>
     <div class="cta">
-      <a class="btn ring" href="/grafico/">Abrir o gráfico</a>
-      <a class="btn uline" href="/entrar/?modo=criar" id="cta-signup-2">Criar conta grátis</a>
+      <a class="btn ring" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
+      <a class="btn uline" href="/entrar/?modo=criar" id="cta-signup-2" data-i18n="nav.signupFree">Criar conta grátis</a>
     </div>
   </section>
 </main>
@@ -55,6 +56,12 @@
 <script type="module">
   import { me, logout } from './js/conta.js';
   import { mountLogo } from './js/logo-anim.js';
+  import { t, locale, applyI18n, langSwitch } from './js/i18n.js';
+
+  applyI18n();
+  document.title = t('meta.homeTitle');
+  document.querySelector('meta[name=description]').content = t('meta.homeDesc');
+  document.getElementById('lang').replaceWith(langSwitch());
 
   // a logo do topo se escreve ao abrir; se algo falhar, volta a imagem normal
   const navLogo = document.querySelector('.nav .logo');
@@ -71,27 +78,31 @@
   me().then(user => {
     if (!user) return;
     const acc = document.getElementById('account');
-    const out = Object.assign(document.createElement('button'), { className: 'btn uline sm', textContent: 'Sair' });
+    const out = Object.assign(document.createElement('button'), { className: 'btn uline sm', textContent: t('nav.logout') });
     out.onclick = async () => { await logout(); location.reload(); };
     const who = Object.assign(document.createElement('span'), { textContent: user.email });
     who.style.color = 'var(--muted)';
-    acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn ring sm', href: '/grafico/', textContent: 'Abrir o gráfico' }));
+    acc.replaceChildren(who, out, Object.assign(document.createElement('a'), { className: 'btn ring sm', href: '/grafico/', textContent: t('nav.openChart') }));
     document.getElementById('cta-signup-2')?.remove();
   });
 
   // Preço do BTC ao vivo na pílula acima do título.
   const price = document.getElementById('tk-price'), chg = document.getElementById('tk-chg');
-  const fmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const show = (c, o) => {
     price.textContent = fmt.format(c);
     const p = ((c - o) / o) * 100;
     chg.textContent = `${p >= 0 ? '+' : '−'}${fmt.format(Math.abs(p))}%`;
     chg.className = p >= 0 ? 'up' : 'down';
   };
-  (function connect() {
-    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@miniTicker');
-    ws.onmessage = e => { const d = JSON.parse(e.data); show(+d.c, +d.o); };
-    ws.onclose = () => setTimeout(connect, 5000);
+  // data-stream.binance.vision é o endereço só de dados públicos (abre também onde a Binance é
+  // bloqueada, como nos EUA); se falhar, tenta o principal.
+  const STREAMS = ['wss://data-stream.binance.vision', 'wss://stream.binance.com:9443'];
+  (function connect(i = 0) {
+    const ws = new WebSocket(`${STREAMS[i % STREAMS.length]}/ws/btcusdt@miniTicker`);
+    let got = false;
+    ws.onmessage = e => { got = true; const d = JSON.parse(e.data); show(+d.c, +d.o); };
+    ws.onclose = () => setTimeout(() => connect(got ? i : i + 1), got ? 5000 : 1000);
   })();
 </script>
 </body>

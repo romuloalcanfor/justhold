@@ -1,4 +1,5 @@
 // Cliente da API de contas, usado pela homepage, pela página de login e pelo gráfico.
+import { apiError, t } from './i18n.js';
 
 async function call(method, path, body) {
   const res = await fetch(path, {
@@ -8,7 +9,7 @@ async function call(method, path, body) {
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || `Erro ${res.status}`), { status: res.status });
+  if (!res.ok) throw Object.assign(new Error(apiError(data.code, data.error) || t('err.generic', { status: res.status })), { status: res.status });
   return data;
 }
 
