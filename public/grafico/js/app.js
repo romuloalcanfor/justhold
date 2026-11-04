@@ -275,17 +275,29 @@ chart.timeScale().subscribeVisibleLogicalRangeChange(r => {
   updateRealtimeBtn(r);
 });
 
-// Botão ">>" que volta para o candle atual quando ele sai da tela (como no TradingView).
+// Botão de resetar a visão (como o do TradingView): aparece quando o candle atual sai da tela
+// ou quando o eixo de preço foi arrastado/esticado; volta para hoje com a escala automática.
 const realtimeBtn = $('#realtime-btn');
-realtimeBtn.addEventListener('click', () => chart.timeScale().scrollToRealTime());
+function resetView() {
+  chart.priceScale('right').applyOptions({ autoScale: true });
+  const n = state.bars.length;
+  if (n > 150) chart.timeScale().setVisibleLogicalRange({ from: n - 150, to: n + 10 });
+  else chart.timeScale().fitContent();
+  updateRealtimeBtn();
+}
+realtimeBtn.addEventListener('click', resetView);
 function updateRealtimeBtn(r = chart.timeScale().getVisibleLogicalRange()) {
-  const away = !!r && state.bars.length > 0 && r.to < state.bars.length - 1;
+  const auto = chart.priceScale('right').options().autoScale;
+  $('#auto-btn').classList.toggle('active', auto);
+  const away = state.bars.length > 0 && ((!!r && r.to < state.bars.length - 1) || !auto);
   realtimeBtn.hidden = !away;
   if (away) {
     realtimeBtn.style.left = `${chart.timeScale().width() - realtimeBtn.offsetWidth - 10}px`;
     realtimeBtn.style.top = `${chartEl.clientHeight - chart.timeScale().height() - realtimeBtn.offsetHeight - 10}px`;
   }
 }
+// a biblioteca não avisa quando a autoescala é desligada; confere depois de cada arrasto/rolagem
+for (const ev of ['pointerup', 'mouseup', 'touchend', 'wheel', 'dblclick']) window.addEventListener(ev, () => requestAnimationFrame(() => updateRealtimeBtn()), { capture: true, passive: true });
 
 function setStatus(on) {
   $('#status').className = on ? 'on' : 'off';
@@ -1001,7 +1013,7 @@ function applyScale() {
   $('#log-btn').classList.toggle('active', state.log);
 }
 $('#log-btn').addEventListener('click', () => { state.log = !state.log; store.set('log', state.log); applyScale(); });
-$('#auto-btn').addEventListener('click', () => chart.priceScale('right').applyOptions({ autoScale: true }));
+$('#auto-btn').addEventListener('click', () => { chart.priceScale('right').applyOptions({ autoScale: true }); updateRealtimeBtn(); });
 applyScale();
 
 document.addEventListener('keydown', e => {
@@ -1009,6 +1021,7 @@ document.addEventListener('keydown', e => {
   if ($('#modal-root').children.length || e.target.closest('input, select')) return;
   if (e.key === 'Escape') { ruler.clear(); setTool('cursor'); return; }
   if (e.altKey && e.code === 'KeyH') { e.preventDefault(); setTool('hline'); return; }
+  if (e.altKey && e.code === 'KeyR') { e.preventDefault(); resetView(); return; }
   // como no TradingView: começar a digitar abre a busca de símbolo
   if (!e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z0-9]$/i.test(e.key)) {
     e.preventDefault();

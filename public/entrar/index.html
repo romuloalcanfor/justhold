@@ -60,11 +60,11 @@
 
   function setMode(m) {
     mode = m;
-    const t = TEXT[m];
-    $('title').textContent = t.title;
-    $('subtitle').textContent = t.sub;
-    $('submit').textContent = t.btn;
-    $('password').autocomplete = t.ac;
+    const txt = TEXT[m]; // não chamar de "t": esconderia a função de tradução usada abaixo
+    $('title').textContent = txt.title;
+    $('subtitle').textContent = txt.sub;
+    $('submit').textContent = txt.btn;
+    $('password').autocomplete = txt.ac;
     $('password').placeholder = m === 'criar' ? t('auth.passwordHint') : '';
     $('error').textContent = '';
     document.querySelectorAll('.tabs button').forEach(b => {

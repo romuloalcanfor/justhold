@@ -1,0 +1,90 @@
+/* Simulador (calculadora): à esquerda o que a pessoa escolhe, à direita quanto teria hoje.
+   Embaixo das escolhas, as três estratégias da comparação, cada uma com o resultado. */
+.calc-wrap { max-width: 1120px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) 16px 96px; }
+.calc-wrap h1 { margin: 0 0 28px; text-align: center; font: 400 clamp(36px, 5vw, 52px)/1.05 var(--display); font-variation-settings: "opsz" 72; letter-spacing: -.01em; background: var(--title-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); border: 1px solid var(--line-strong); border-radius: 22px; background: var(--panel); }
+.rows { padding: 8px 26px 26px; border-right: 1px solid var(--line); }
+.crow { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; border-bottom: 1px solid var(--line); }
+.crow > span:first-child, .strat-head > span { color: var(--muted); font-size: 15px; }
+
+/* campos */
+.money-in { display: flex; align-items: baseline; gap: 6px; font-size: 20px; font-weight: 500; cursor: text; }
+.money-in .cur { color: var(--dim); font-weight: 400; }
+.money-in input { width: 8ch; border: 0; background: none; color: var(--text); font: inherit; text-align: right; outline: none; border-bottom: 1px dashed rgba(255, 255, 255, .25); }
+.money-in input:focus { border-bottom-color: rgba(255, 255, 255, .7); }
+.box-select, .box-date { height: 44px; padding: 0 36px 0 14px; border: 1px solid var(--line-strong); border-radius: 11px; background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a1a1a6' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 10px auto;
+  color: var(--text); font: 15px var(--sans); -webkit-appearance: none; appearance: none; color-scheme: dark; outline: none; cursor: pointer; }
+.box-select:focus, .box-date:focus { border-color: rgba(255, 255, 255, .55); }
+.box-date::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+.box-select option { background: #111; }
+
+/* estratégias */
+.strat { padding-top: 20px; }
+.strat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.find { display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: none; color: var(--muted); font-size: 14px; }
+.find:hover { color: var(--text); }
+.find svg, .swap svg, .search svg { flex: none; width: 15px; height: 15px; }
+.cards { display: grid; gap: 8px; }
+.sc { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 16px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: 14px; background: rgba(255, 255, 255, .015); color: var(--muted); text-align: left; cursor: pointer; transition: border-color .15s, background .15s; outline: none; }
+.sc:hover { border-color: rgba(255, 255, 255, .32); }
+.sc:focus-visible { border-color: rgba(255, 255, 255, .6); }
+.sc.on { border-color: var(--text); background: rgba(255, 255, 255, .05); cursor: default; }
+.sc .n { font-size: 16px; font-weight: 500; color: var(--text); }
+.sc .d { grid-column: 1; font-size: 13.5px; line-height: 1.45; }
+.sc .v { grid-column: 2; grid-row: 1 / 3; align-self: center; text-align: right; font-size: 16px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sc .v small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 400; }
+.sc .swap { grid-column: 1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 0; border: 0; background: none; color: var(--dim); font-size: 13px; }
+.sc .swap:hover { color: var(--text); }
+.sc .best { margin-left: 8px; padding: 1px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 500; color: var(--up); background: rgba(8, 153, 129, .12); vertical-align: 1px; }
+
+/* resultado */
+.out { padding: 26px 30px 26px; }
+.out .rl { color: var(--muted); font-size: 15px; }
+.out .final { font-size: clamp(52px, 6vw, 84px); }
+.vs { margin: 10px 0 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.vs b { color: var(--text); font-weight: 500; }
+.out .chart { margin-top: 24px; }
+.out .chart svg { height: 240px; }
+.out .stats { margin-top: 22px; }
+.out .stats dd { font-size: 19px; }
+.calc-wrap .fine { margin: 28px auto 0; text-align: center; }
+
+/* busca de estratégias */
+.picker { position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 24px 16px; background: rgba(0, 0, 0, .66); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.picker[hidden] { display: none; }
+.sheet { display: flex; flex-direction: column; width: min(640px, 100%); max-height: min(760px, calc(100vh - 48px)); border: 1px solid var(--line-strong); border-radius: 20px; background: #0c0c0d; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, .7, .2, 1); }
+@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 0; }
+.sheet-head p { margin: 0; font-size: 15px; color: var(--muted); }
+.x { width: 34px; height: 34px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 22px; line-height: 1; }
+.x:hover { background: rgba(255, 255, 255, .06); color: var(--text); }
+.search { display: flex; align-items: center; gap: 10px; margin: 14px 20px 0; padding: 0 14px; height: 48px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--panel); color: var(--dim); }
+.search:focus-within { border-color: rgba(255, 255, 255, .5); }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; color: var(--text); font: 16px var(--sans); outline: none; }
+.search input::-webkit-search-cancel-button { filter: invert(1); opacity: .4; }
+.groups { display: flex; gap: 6px; padding: 12px 20px 4px; overflow-x: auto; scrollbar-width: none; }
+.groups::-webkit-scrollbar { display: none; }
+.groups button { flex: none; height: 32px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: none; color: var(--muted); font-size: 13.5px; }
+.groups button:hover { color: var(--text); }
+.groups button.on { background: var(--text); border-color: var(--text); color: #000; }
+.sheet > * { flex-shrink: 0; } /* só a lista encolhe (e rola) quando falta altura */
+.sheet > .list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px 12px 14px; overscroll-behavior: contain; }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; width: 100%; padding: 12px 10px; border: 0; border-radius: 12px; background: none; color: var(--muted); text-align: left; }
+.prow:hover, .prow:focus-visible { background: rgba(255, 255, 255, .05); outline: none; }
+.prow .n { color: var(--text); font-size: 15px; font-weight: 500; }
+.prow .tag { margin-left: 8px; padding: 1px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 500; color: var(--muted); background: rgba(255, 255, 255, .07); vertical-align: 1px; }
+.prow .d { grid-column: 1; font-size: 13.5px; line-height: 1.45; }
+.prow .late { display: block; margin-top: 2px; font-size: 12px; color: var(--dim); }
+.prow .v { grid-column: 2; grid-row: 1 / 3; align-self: center; text-align: right; color: var(--text); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prow .v small { display: block; font-size: 12.5px; font-weight: 400; }
+.empty { padding: 28px 10px; text-align: center; color: var(--dim); font-size: 14px; }
+
+@media (max-width: 860px) {
+  .calc { grid-template-columns: minmax(0, 1fr); }
+  .rows { border-right: 0; border-bottom: 1px solid var(--line); padding: 4px 18px 20px; }
+  .out { padding: 22px 18px; }
+}
+@media (max-width: 520px) {
+  .picker { place-items: end stretch; padding: 0; }
+  .sheet { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; }
+}

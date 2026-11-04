@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador · JustHold</title>
+<meta name="description" content="E se você tivesse investido? Escolha o valor, a data, a cripto e o jeito de investir, e veja quanto teria hoje.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/img/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JustHold">
+<meta property="og:url" content="https://justhold.ai/simulador/">
+<meta property="og:title" content="Simulador · JustHold">
+<meta property="og:description" content="E se você tivesse investido? Veja quanto teria hoje.">
+<meta property="og:image" content="https://justhold.ai/img/preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@72,400&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="sim.css">
+<link rel="stylesheet" href="calc.css">
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="logo" href="/" aria-label="JustHold"><img src="/img/logo.svg" alt="JustHold"></a>
+  <span class="spacer"></span>
+  <div id="lang"></div>
+  <a class="btn ring sm" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
+</header>
+
+<main class="calc-wrap">
+  <h1 data-i18n="sim.title">Simulador de investimento</h1>
+  <div class="calc">
+    <form class="rows" autocomplete="off">
+      <label class="crow"><span data-i18n="sim.lbl.amount">Valor investido</span><span class="money-in"><span id="cur">R$</span><input id="amount" inputmode="numeric" data-i18n-aria="sim.aria.amount"></span></label>
+      <label class="crow"><span data-i18n="sim.lbl.asset">Cripto</span>
+        <select id="asset" class="box-select" data-i18n-aria="sim.aria.asset">
+          <option value="BTC">Bitcoin</option>
+          <option value="ETH">Ethereum</option>
+          <option value="SOL">Solana</option>
+          <option value="BNB">BNB</option>
+          <option value="XRP">XRP</option>
+        </select>
+      </label>
+      <label class="crow"><span data-i18n="sim.lbl.date">Data do investimento</span><input id="date" type="date" class="box-date" required data-i18n-aria="sim.aria.date"></label>
+      <div class="strat">
+        <div class="strat-head">
+          <span data-i18n="sim.lbl.strategy">Estratégia</span>
+          <button type="button" class="find" id="find"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span data-i18n="sim.searchAll">Buscar outras estratégias</span></button>
+        </div>
+        <div class="cards" id="cards"></div>
+      </div>
+    </form>
+
+    <section class="out" aria-live="polite">
+      <div class="rl" data-i18n="sim.result">Hoje você teria</div>
+      <div class="big"><span id="final" class="final loading">R$ 00.000</span><span id="chg" class="chg"></span></div>
+      <p class="vs" id="vs"></p>
+      <p class="error" id="error" hidden><span data-i18n="sim.error">Não deu para buscar os preços agora.</span> <button type="button" class="btn uline sm" id="retry" data-i18n="sim.retry">Tentar de novo</button></p>
+      <figure class="chart">
+        <div class="legend" id="legend"></div>
+        <svg id="svg" role="img"></svg>
+        <div class="tip" id="tip" hidden></div>
+      </figure>
+      <dl class="stats">
+        <div><dt data-i18n="sim.worst">Maior queda</dt><dd><span id="worst">—</span><small id="worst-sub"></small></dd></div>
+        <div><dt data-i18n="sim.trades">Operações</dt><dd id="trades">—</dd></div>
+        <div><dt data-i18n="sim.fees">Taxas pagas</dt><dd id="fees">—</dd></div>
+      </dl>
+    </section>
+  </div>
+  <p class="fine" id="fine"></p>
+</main>
+
+<footer class="footer">
+  <img src="/img/logo.svg" alt="JustHold">
+  <span class="spacer"></span>
+</footer>
+
+<div class="picker" id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pick-title">
+  <div class="sheet">
+    <div class="sheet-head"><p id="pick-title"></p><button type="button" class="x" id="pick-close" data-i18n-aria="sim.close" aria-label="Fechar">×</button></div>
+    <label class="search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><input id="pick-q" type="search" data-i18n-placeholder="sim.searchPh" placeholder="Buscar: média, semanal, rompimento…" autocomplete="off"></label>
+    <div class="groups" id="pick-groups"></div>
+    <div class="list" id="pick-list"></div>
+  </div>
+</div>
+
+<script type="module" src="sim.js"></script>
+<script type="module" src="calc.js"></script>
+</body>
+</html>

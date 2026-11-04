@@ -9,6 +9,9 @@
     "binding": "ASSETS",
     "run_worker_first": ["/api/*"]
   },
+  // Bot simulado: roda logo depois do fechamento do candle diário (00h05 UTC = 21h05 de Brasília).
+  // Quem pode ver a página /bot/: npx wrangler secret put BOT_OWNERS (e-mails separados por vírgula).
+  "triggers": { "crons": ["5 0 * * *"] },
   "d1_databases": [
     { "binding": "DB", "database_name": "justhold", "database_id": "17a39828-63ec-4cb8-b004-dca46e35b7d1" }
   ],

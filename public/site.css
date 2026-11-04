@@ -40,6 +40,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (max-width: 520px) { .nav { gap: 14px; } }
 /* no celular não cabe tudo no topo: o gráfico continua a um toque na pílula do preço e no fim da página */
 @media (max-width: 440px) { .nav .account .btn.ring, .nav > .btn.ring { display: none; } }
+/* o link do simulador some antes, em telas bem estreitas, para o topo não apertar */
+@media (max-width: 400px) { .nav .nav-sim { display: none; } }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 12px; font-size: 15px; font-weight: 500; border: 1px solid transparent; transition: background .2s, border-color .2s, opacity .2s; white-space: nowrap; }
 .btn.sm { height: 34px; padding: 0 14px; border-radius: 9px; font-size: 14px; }
@@ -64,7 +66,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes ring-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .btn.ring::before { animation: none; } }
 /* link de texto com sublinhado que desliza no hover */
-.btn.uline { position: relative; color: var(--muted); padding: 0 6px; }
+.btn.uline { position: relative; color: var(--muted); padding: 0 6px; background: none; } /* <button> traz fundo do navegador */
 .btn.uline::after { content: ''; position: absolute; left: 6px; right: 6px; bottom: calc(50% - .85em); height: 1px; background: var(--text); transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
 .btn.uline:hover { color: var(--text); }
 .btn.uline:hover::after { transform: scaleX(1); }

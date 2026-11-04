@@ -1,5 +1,7 @@
 // API de contas do JustHold: cadastro e login com e-mail e senha, sessão por cookie
 // e preferências de cada usuário. O resto do site é servido como arquivos estáticos.
+// Também roda o bot simulado (src/bot.js) uma vez por dia, pelo agendamento do wrangler.jsonc.
+import { runBot, botSummary } from './bot.js';
 
 const SESSION_COOKIE = 'jh_session';
 const SESSION_DAYS = 30;
@@ -9,15 +11,21 @@ const MAX_FAILURES = 8; // por e-mail, a cada 15 minutos
 const FAILURE_WINDOW_MS = 15 * 60 * 1000;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
+      if (url.pathname === '/api/dolar' && request.method === 'GET') return await dollarHistory(url, ctx);
       return await route(request, env, url);
     } catch (e) {
       console.error(e);
       return json({ error: 'Erro no servidor. Tente de novo.', code: 'server' }, 500);
     }
+  },
+
+  // Logo depois do fechamento do candle diário (00h05 UTC, 21h05 de Brasília).
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runBot(env).catch(e => console.error('bot', e)));
   },
 };
 
@@ -45,7 +53,23 @@ async function route(request, env, url) {
     }
     if (method === 'PUT') return savePrefs(request, env, user);
   }
+  if (path === '/api/bot' || path === '/api/bot/run') {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: 'Não logado.', code: 'notLogged' }, 401);
+    if (!isBotOwner(env, user)) return json({ error: 'Esta página é só do dono do bot.', code: 'notOwner' }, 403);
+    if (path === '/api/bot' && method === 'GET') return json(await botSummary(env));
+    if (path === '/api/bot/run' && method === 'POST') {
+      await runBot(env);
+      return json(await botSummary(env));
+    }
+  }
   return json({ error: 'Não encontrado.' }, 404);
+}
+
+// Donos do bot: e-mails no segredo BOT_OWNERS (separados por vírgula), fora do código público.
+function isBotOwner(env, user) {
+  const owners = String(env.BOT_OWNERS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  return owners.includes(user.email);
 }
 
 // ---------- cadastro e login ----------
@@ -128,6 +152,36 @@ async function savePrefs(request, env, user) {
     'INSERT INTO prefs (user_id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at',
   ).bind(user.id, JSON.stringify(body.prefs), now).run();
   return json({ ok: true, updatedAt: now });
+}
+
+// ---------- cotação do dólar (simulador em reais) ----------
+// PTAX de venda do Banco Central desde 2017, como [["AAAA-MM-DD", 5.12], ...]. Fica 6 horas no
+// cache da Cloudflare, para não bater no BCB a cada visita. O BCB aceita no máximo 10 anos por
+// consulta, então busca em blocos de 5.
+async function dollarHistory(url, ctx) {
+  const cache = caches.default;
+  const key = new Request(`${url.origin}/api/dolar`);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const br = d => `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+  const now = new Date();
+  const out = [];
+  for (let y = 2017; y <= now.getUTCFullYear(); y += 5) {
+    const from = new Date(Date.UTC(y, 0, 1));
+    const to = new Date(Math.min(Date.UTC(y + 4, 11, 31), now.getTime()));
+    const res = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados?formato=json&dataInicial=${br(from)}&dataFinal=${br(to)}`,
+      { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return json({ error: `BCB ${res.status}` }, 502);
+    for (const r of await res.json()) {
+      const [d, m, yy] = r.data.split('/');
+      out.push([`${yy}-${m}-${d}`, +r.valor]);
+    }
+  }
+  const response = new Response(JSON.stringify(out), {
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=21600' },
+  });
+  ctx.waitUntil(cache.put(key, response.clone()));
+  return response;
 }
 
 // ---------- utilitários ----------
