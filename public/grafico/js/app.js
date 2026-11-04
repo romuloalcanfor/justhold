@@ -98,7 +98,7 @@ try {
 
 const state = {
   symbol: store.get('symbol', lang === 'pt' ? 'BTCBRL' : 'BTCUSDT'), // quem é de fora começa em dólar
-  interval: store.get('interval', '1d'),
+  interval: '1d', // sempre abre no diário; a troca de tempo gráfico vale só até recarregar
   watchlist: store.get('watchlist.v2', DEFAULT_WATCHLIST),
   indicators: store.get('indicators.v2', DEFAULT_INDICATORS),
   hlines: store.get('hlines', {}),
@@ -272,7 +272,20 @@ async function loadOlder() {
 
 chart.timeScale().subscribeVisibleLogicalRangeChange(r => {
   if (r && r.from < 50) loadOlder();
+  updateRealtimeBtn(r);
 });
+
+// Botão ">>" que volta para o candle atual quando ele sai da tela (como no TradingView).
+const realtimeBtn = $('#realtime-btn');
+realtimeBtn.addEventListener('click', () => chart.timeScale().scrollToRealTime());
+function updateRealtimeBtn(r = chart.timeScale().getVisibleLogicalRange()) {
+  const away = !!r && state.bars.length > 0 && r.to < state.bars.length - 1;
+  realtimeBtn.hidden = !away;
+  if (away) {
+    realtimeBtn.style.left = `${chart.timeScale().width() - realtimeBtn.offsetWidth - 10}px`;
+    realtimeBtn.style.top = `${chartEl.clientHeight - chart.timeScale().height() - realtimeBtn.offsetHeight - 10}px`;
+  }
+}
 
 function setStatus(on) {
   $('#status').className = on ? 'on' : 'off';

@@ -129,6 +129,9 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
   .tool { width: 34px; }
 }
 
+#realtime-btn { position: absolute; z-index: 5; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: rgba(19, 23, 34, .9); color: var(--text); box-shadow: 0 2px 8px rgba(0, 0, 0, .4); cursor: pointer; }
+#realtime-btn:hover { background: var(--hover); }
+#realtime-btn[hidden] { display: none; }
 #countdown { position: absolute; z-index: 4; pointer-events: none; height: 17px; line-height: 17px; text-align: center; color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; }
 #wl-rows { flex: 1; }
 #wl-detail { flex: none; height: var(--wl-detail-h, auto); overflow-y: auto; padding: 12px 14px 16px; }
