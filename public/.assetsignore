@@ -1,0 +1,17 @@
+# Arquivos de public/ que NÃO vão para o site no `wrangler deploy` (ficam só no computador).
+# Testes do Satoshi: versões que não foram escolhidas e páginas de comparação.
+satoshi-1/
+satoshi-2/
+satoshi-3/
+satoshi-4/
+satoshi-comparar/
+home-satoshi-2/
+home-satoshi-3/
+img/satoshi.riv
+img/satoshi.glb
+js/satoshi.js
+js/satoshi-3d.js
+vendor/rive/
+vendor/GLTFLoader.js
+vendor/BufferGeometryUtils.js
+vendor/meshopt_decoder.module.js

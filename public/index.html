@@ -54,10 +54,16 @@
 
   <section class="section closing">
     <h2 class="sr-only">Just hold.</h2>
-    <div id="logo-anim"></div>
-    <div class="cta">
-      <a class="btn ring" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
-      <a class="btn uline" href="/entrar/?modo=criar" id="cta-signup-2" data-i18n="nav.signupFree">Criar conta grátis</a>
+    <div class="closing-row">
+      <!-- Satoshi (quadros do vídeo): se revela com a rolagem e para no gesto de silêncio -->
+      <div class="satoshi-quadros" id="satoshi"></div>
+      <div class="closing-brand">
+        <div id="logo-anim"></div>
+        <div class="cta">
+          <a class="btn ring" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
+          <a class="btn uline" href="/entrar/?modo=criar" id="cta-signup-2" data-i18n="nav.signupFree">Criar conta grátis</a>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -84,6 +90,8 @@
 
   // o tabuleiro carrega à parte, para não segurar o resto da página
   import('./js/xadrez.js').then(m => m.mountChess(document.getElementById('board'))).catch(console.error);
+  // o Satoshi só baixa as imagens quando a pessoa rola até perto dele
+  import('./js/satoshi-quadros.js').then(m => m.mountSatoshiQuadros(document.getElementById('satoshi'))).catch(console.error);
 
   const nav = document.getElementById('nav');
   addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
