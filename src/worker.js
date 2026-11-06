@@ -1,7 +1,10 @@
 // API de contas do JustHold: cadastro e login com e-mail e senha, sessão por cookie
 // e preferências de cada usuário. O resto do site é servido como arquivos estáticos.
-// Também roda o bot simulado (src/bot.js) uma vez por dia, pelo agendamento do wrangler.jsonc.
+// Também roda o bot simulado (src/bot.js) uma vez por dia, pelo agendamento do wrangler.jsonc,
+// e entrega a análise do mercado da home (src/analise.js), publicada por scripts/analise.mjs.
 import { runBot, botSummary } from './bot.js';
+import { latestAnalysis } from './analise.js';
+import { audioResponse, voiceEnabled, voiceName } from './voz.js';
 
 const SESSION_COOKIE = 'jh_session';
 const SESSION_DAYS = 30;
@@ -9,6 +12,7 @@ const PBKDF2_ITERATIONS = 100000; // máximo aceito pelo Workers
 const MAX_PREFS_BYTES = 64 * 1024;
 const MAX_FAILURES = 8; // por e-mail, a cada 15 minutos
 const FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const MAX_DEMO_BYTES = 32 * 1024;
 
 export default {
   async fetch(request, env, ctx) {
@@ -16,6 +20,13 @@ export default {
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
       if (url.pathname === '/api/dolar' && request.method === 'GET') return await dollarHistory(url, ctx);
+      const audio = url.pathname.match(/^\/api\/analise\/audio\/([\w-]+)-(pt|en)\.mp3$/);
+      if (audio && request.method === 'GET') return await audioResponse(env, request, audio[1], audio[2]);
+      if (url.pathname === '/api/analise' && request.method === 'GET') {
+        // pública: a mesma para todo mundo, fica 2 minutos no cache. `voice`: nome da voz do Grok
+        // (o áudio é gerado no primeiro clique em "Ouvir"), ou null se ela não estiver ligada
+        return json({ analysis: await latestAnalysis(env), voice: voiceEnabled(env) ? voiceName(env) : null }, 200, { 'cache-control': 'public, max-age=120' });
+      }
       return await route(request, env, url);
     } catch (e) {
       console.error(e);
@@ -52,6 +63,15 @@ async function route(request, env, url) {
       return json({ prefs: row ? JSON.parse(row.data) : null, updatedAt: row?.updated_at ?? null });
     }
     if (method === 'PUT') return savePrefs(request, env, user);
+  }
+  if (path === '/api/demo') {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: 'Não logado.', code: 'notLogged' }, 401);
+    if (method === 'GET') {
+      const row = await env.DB.prepare('SELECT data, updated_at FROM demo_wallets WHERE user_id = ?').bind(user.id).first();
+      return json({ wallets: row ? JSON.parse(row.data) : [], updatedAt: row?.updated_at ?? null });
+    }
+    if (method === 'PUT') return saveDemo(request, env, user);
   }
   if (path === '/api/bot' || path === '/api/bot/run') {
     const user = await currentUser(request, env);
@@ -151,6 +171,24 @@ async function savePrefs(request, env, user) {
   await env.DB.prepare(
     'INSERT INTO prefs (user_id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at',
   ).bind(user.id, JSON.stringify(body.prefs), now).run();
+  return json({ ok: true, updatedAt: now });
+}
+
+// ---------- carteiras demo ----------
+// A página /demo/ manda a lista inteira; aqui só conferimos tamanho e formato básico.
+async function saveDemo(request, env, user) {
+  const text = await request.text();
+  if (text.length > MAX_DEMO_BYTES) return json({ error: 'Carteiras demais.' }, 413);
+  let body;
+  try { body = JSON.parse(text); } catch { return json({ error: 'JSON inválido.' }, 400); }
+  const wallets = body?.wallets;
+  if (!Array.isArray(wallets) || wallets.length > 30 || !wallets.every(w => w && typeof w === 'object' && typeof w.id === 'string')) {
+    return json({ error: 'Formato inválido.' }, 400);
+  }
+  const now = Date.now();
+  await env.DB.prepare(
+    'INSERT INTO demo_wallets (user_id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at',
+  ).bind(user.id, JSON.stringify(wallets), now).run();
   return json({ ok: true, updatedAt: now });
 }
 

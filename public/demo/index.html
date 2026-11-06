@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo · JustHold</title>
+<meta name="description" content="Invista de mentira, com preços de verdade: escolha a cripto e a estratégia e acompanhe dia a dia.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/img/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JustHold">
+<meta property="og:url" content="https://justhold.ai/demo/">
+<meta property="og:title" content="Demo · JustHold">
+<meta property="og:description" content="Invista de mentira, com preços de verdade.">
+<meta property="og:image" content="https://justhold.ai/img/preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@72,400&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/simulador/calc.css">
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="logo" href="/" aria-label="JustHold"><img src="/img/logo.svg" alt="JustHold"></a>
+  <span class="spacer"></span>
+  <div id="lang"></div>
+  <a class="btn uline sm nav-sim" href="/simulador/" data-i18n="nav.simulator">Simulador</a>
+  <a class="btn uline sm nav-demo" href="/demo/" aria-current="page" data-i18n="nav.demo">Demo</a>
+  <a class="btn ring sm" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
+</header>
+
+<main class="calc-wrap demo">
+  <h1 data-i18n="demo.title">Carteira demo</h1>
+  <p class="demo-sub" data-i18n="demo.sub">Invista de mentira, com preços de verdade, e acompanhe dia a dia.</p>
+  <div class="calc">
+    <form class="rows" id="form" autocomplete="off">
+      <label class="crow"><span data-i18n="demo.amount">Valor</span><span class="money-in"><span class="cur">R$</span><input id="amount" inputmode="numeric" data-i18n-aria="demo.amount"></span></label>
+      <label class="crow"><span data-i18n="demo.asset">Cripto</span>
+        <select id="asset" class="box-select" data-i18n-aria="demo.asset">
+          <option value="BTC">Bitcoin</option>
+          <option value="ETH">Ethereum</option>
+          <option value="SOL">Solana</option>
+          <option value="BNB">BNB</option>
+          <option value="XRP">XRP</option>
+        </select>
+      </label>
+      <div class="strat">
+        <div class="strat-head">
+          <span data-i18n="demo.strategy">Estratégia</span>
+          <select id="more" class="more-select" data-i18n-aria="demo.more"></select>
+        </div>
+        <div class="cards" id="cards"></div>
+      </div>
+      <button class="btn primary start" id="start" type="submit" data-i18n="demo.start">Começar</button>
+      <p class="form-msg" id="form-msg" role="status"></p>
+    </form>
+
+    <section class="out wallets" aria-live="polite">
+      <div class="wallets-head">
+        <span class="rl" data-i18n="demo.mine">Suas carteiras</span>
+        <span class="total" id="total"></span>
+      </div>
+      <div id="list"></div>
+      <p class="save-note" id="save-note"></p>
+    </section>
+  </div>
+  <p class="fine" data-i18n="demo.fine">Dinheiro de mentira, preços reais da Binance e taxa de 0,1% por operação. Não é recomendação de investimento.</p>
+</main>
+
+<footer class="footer">
+  <img src="/img/logo.svg" alt="JustHold">
+  <span class="spacer"></span>
+</footer>
+
+<script type="module" src="demo.js"></script>
+</body>
+</html>

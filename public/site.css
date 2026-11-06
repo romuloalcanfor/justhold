@@ -42,6 +42,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (max-width: 440px) { .nav .account .btn.ring, .nav > .btn.ring { display: none; } }
 /* o link do simulador some antes, em telas bem estreitas, para o topo não apertar */
 @media (max-width: 400px) { .nav .nav-sim { display: none; } }
+@media (max-width: 480px) { .nav .nav-demo { display: none; } }
+.nav .btn.uline[aria-current=page] { color: var(--text); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 12px; font-size: 15px; font-weight: 500; border: 1px solid transparent; transition: background .2s, border-color .2s, opacity .2s; white-space: nowrap; }
 .btn.sm { height: 34px; padding: 0 14px; border-radius: 9px; font-size: 14px; }
@@ -214,3 +216,41 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero-text > :nth-child(4) { animation-delay: .36s; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: reduce) { .hero-text > *, .board::before { animation: none; } }
+
+/* análise do dia (home): coluna de leitura, título serifado, números das médias em blocos */
+.daily-wrap[hidden] { display: none; }
+.daily { max-width: 720px; margin: 0 auto; }
+.daily-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.daily .kicker { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; letter-spacing: .02em; }
+.daily .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: #d9a441; box-shadow: 0 0 10px rgba(217, 164, 65, .7); }
+.daily .kicker .tag { margin-left: 4px; padding: 1px 7px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 11px; color: var(--dim); }
+.daily h2 { margin: 0 0 14px; font: 400 clamp(32px, 4.4vw, 48px)/1.08 var(--display); letter-spacing: -.01em;
+  background: var(--title-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.daily .lead { margin: 0 0 28px; color: var(--text); font-size: 18px; line-height: 1.6; }
+.daily .play { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px 0 12px; flex: none;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, .04); font-size: 14px; font-weight: 500; transition: background .2s, border-color .2s; }
+.daily .play:hover { background: rgba(255, 255, 255, .09); }
+.daily .play svg { width: 16px; height: 16px; padding: 6px; box-sizing: content-box; border-radius: 50%; background: var(--text); color: #000; }
+.daily .play small { color: var(--dim); font-size: 12px; font-weight: 400; }
+.daily .play.on { border-color: rgba(217, 164, 65, .55); }
+.daily .play.loading svg { animation: jh-breathe 1.2s ease-in-out infinite; }
+@keyframes jh-breathe { 50% { opacity: .35; } }
+.daily .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0 0 28px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--line); }
+.daily .tile { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: var(--panel); }
+.daily .tile .tl { color: var(--dim); font-size: 12px; }
+.daily .tile .tv { font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.daily .tile .td { font-size: 13px; font-variant-numeric: tabular-nums; }
+.daily .up { color: var(--up); } .daily .down { color: var(--down); }
+.daily-body h3 { margin: 28px 0 8px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.daily-body p, .daily-body li { margin: 0 0 12px; color: #d6d6da; font-size: 16px; line-height: 1.7; }
+.daily-body ul { margin: 0; padding-left: 20px; }
+.daily-body .sources { margin-top: 24px; color: var(--dim); font-size: 13px; }
+.daily-body .sources a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.daily-body .sources a:hover { color: var(--text); }
+.daily .more { margin: 4px 0 0 -6px; }
+.daily .fine { margin: 20px 0 0; color: var(--dim); font-size: 12px; }
+@media (max-width: 640px) {
+  .daily .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .daily-head { flex-wrap: wrap; }
+  .daily .lead { font-size: 17px; }
+}

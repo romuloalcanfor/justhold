@@ -37,6 +37,7 @@
   <span class="spacer"></span>
   <div id="lang"></div>
   <a class="btn uline sm nav-sim" href="/simulador/" data-i18n="nav.simulator">Simulador</a>
+  <a class="btn uline sm nav-demo" href="/demo/" data-i18n="nav.demo">Demo</a>
   <div class="account" id="account">
     <a class="btn uline sm" href="/entrar/" data-i18n="nav.login">Entrar</a>
     <a class="btn ring sm" href="/grafico/" data-i18n="nav.openChart">Abrir o gráfico</a>
@@ -51,6 +52,9 @@
     </div>
     <div class="board" id="board" aria-hidden="true"></div>
   </section>
+
+  <!-- análise do mercado (publicada por scripts/analise.mjs); fica escondida até carregar -->
+  <section class="section daily-wrap" id="daily" hidden aria-live="polite"></section>
 
   <section class="section closing">
     <h2 class="sr-only">Just hold.</h2>
@@ -90,6 +94,8 @@
 
   // o tabuleiro carrega à parte, para não segurar o resto da página
   import('./js/xadrez.js').then(m => m.mountChess(document.getElementById('board'))).catch(console.error);
+  // análise do dia, logo abaixo do título
+  import('./js/analise-home.js').then(m => m.mountDaily(document.getElementById('daily'))).catch(console.error);
   // o Satoshi só baixa as imagens quando a pessoa rola até perto dele
   import('./js/satoshi-quadros.js').then(m => m.mountSatoshiQuadros(document.getElementById('satoshi'))).catch(console.error);
 

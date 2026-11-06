@@ -12,6 +12,9 @@
   // Bot simulado: roda logo depois do fechamento do candle diário (00h05 UTC = 21h05 de Brasília).
   // Quem pode ver a página /bot/: npx wrangler secret put BOT_OWNERS (e-mails separados por vírgula).
   "triggers": { "crons": ["5 0 * * *"] },
+  // Áudio das análises (voz do Grok), enviado por scripts/analise.mjs.
+  // Criar uma vez: npx wrangler r2 bucket create justhold-audio
+  "r2_buckets": [{ "binding": "AUDIO", "bucket_name": "justhold-audio" }],
   "d1_databases": [
     { "binding": "DB", "database_name": "justhold", "database_id": "17a39828-63ec-4cb8-b004-dca46e35b7d1" }
   ],

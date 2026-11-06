@@ -182,8 +182,9 @@ export const warmup = id => SETUPS[id].warmup;
 // Simula uma estratégia a partir do candle `i0`, com 1 dólar de capital.
 // bars: [{ t, o, h, l, c, closed }] em ordem; o último pode estar aberto (preço de agora).
 // A posição do primeiro dia é a que a estratégia teria no fechamento anterior (compra na
-// abertura); depois, cada fechamento pode comprar ou vender tudo, pagando a taxa.
-export function simulate(bars, id, i0, fee = FEE, x = makeCtx(bars)) {
+// abertura, ou em `entry`, para quem começa no meio do dia, como na carteira demo); depois,
+// cada fechamento pode comprar ou vender tudo, pagando a taxa.
+export function simulate(bars, id, i0, fee = FEE, x = makeCtx(bars), entry) {
   const setup = SETUPS[id];
   const st = { pos: setup.warmup ? 0 : 1 };
   for (let i = Math.max(setup.warmup - 1, 0); i < i0; i++) {
@@ -205,7 +206,7 @@ export function simulate(bars, id, i0, fee = FEE, x = makeCtx(bars)) {
     }
     st.pos = to;
   };
-  if (st.pos) { st.pos = 0; trade(i0, 1, x.o(i0)); }
+  if (st.pos) { st.pos = 0; trade(i0, 1, entry ?? x.o(i0)); }
 
   const equity = [];
   for (let i = i0; i < bars.length; i++) {
