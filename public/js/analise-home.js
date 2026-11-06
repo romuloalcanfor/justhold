@@ -42,6 +42,28 @@ function fileReader(src, onState, onFail) {
   };
 }
 
+// abre o vídeo numa janela por cima da página; fechar para tudo
+async function openVideo(a, video) {
+  const box = h('div', { class: 'vbox' });
+  const close = h('button', { type: 'button', class: 'vclose', 'aria-label': t('daily.close') }, '×');
+  const dlg = h('dialog', { class: 'vmodal', 'aria-label': video.titulo ?? t('daily.video') }, close, box);
+  document.body.append(dlg);
+  let player = null;
+  const done = () => { player?.destroy(); dlg.remove(); };
+  close.onclick = () => dlg.close();
+  dlg.addEventListener('close', done);
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.showModal();
+  try {
+    const { mountVideo } = await import('./video.js');
+    player = await mountVideo(box, video, { src: `/api/analise/video/${a.id}-${lang}.mp3?v=${video.v}` });
+    if (dlg.open) player.play(); else player.destroy();
+  } catch (e) {
+    console.error(e);
+    box.textContent = t('demo.error');
+  }
+}
+
 export async function mountDaily(section) {
   let a, grok = false;
   try {
@@ -103,6 +125,17 @@ export async function mountDaily(section) {
   play.onclick = () => (voice.state === 'playing' || voice.state === 'loading' ? voice.pause() : voice.play());
   addEventListener('pagehide', () => voice?.stop());
 
+  // vídeo da análise (gráfico animado com a narração), quando houver para esta língua
+  const video = a.data.video?.[lang];
+  let watch = null;
+  if (video) {
+    const mins = Math.max(1, Math.round(video.dur / 60));
+    watch = h('button', { type: 'button', class: 'play watch' });
+    watch.innerHTML = PLAY;
+    watch.append(h('span', {}, t('daily.video')), h('small', {}, t('daily.minutes', { n: mins })));
+    watch.onclick = () => openVideo(a, video);
+  }
+
   const body = h('div', { class: 'daily-body', id: 'daily-body', hidden: true },
     h('h3', {}, t('daily.market')), ...text.mercado.map(p => h('p', {}, p)),
     h('h3', {}, t('daily.chart')), ...text.grafico.map(p => h('p', {}, p)),
@@ -121,7 +154,7 @@ export async function mountDaily(section) {
     h('div', { class: 'daily-head' },
       h('span', { class: 'kicker' }, h('span', { class: 'dot' }), `${t(`daily.slot.${a.slot}`)} · ${when}`,
         a.data.exemplo ? h('span', { class: 'tag' }, t('daily.sample')) : null),
-      grok || canSpeak ? play : null),
+      h('div', { class: 'daily-actions' }, watch, grok || canSpeak ? play : null)),
     h('h2', {}, text.titulo),
     h('p', { class: 'lead' }, text.resumo),
     tiles,

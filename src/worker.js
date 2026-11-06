@@ -4,7 +4,7 @@
 // e entrega a análise do mercado da home (src/analise.js), publicada por scripts/analise.mjs.
 import { runBot, botSummary } from './bot.js';
 import { latestAnalysis } from './analise.js';
-import { audioResponse, voiceEnabled, voiceName } from './voz.js';
+import { audioResponse, videoAudioResponse, voiceEnabled, voiceName } from './voz.js';
 
 const SESSION_COOKIE = 'jh_session';
 const SESSION_DAYS = 30;
@@ -22,6 +22,8 @@ export default {
       if (url.pathname === '/api/dolar' && request.method === 'GET') return await dollarHistory(url, ctx);
       const audio = url.pathname.match(/^\/api\/analise\/audio\/([\w-]+)-(pt|en)\.mp3$/);
       if (audio && request.method === 'GET') return await audioResponse(env, request, audio[1], audio[2]);
+      const video = url.pathname.match(/^\/api\/analise\/video\/([\w-]+)-(pt|en)\.mp3$/);
+      if (video && request.method === 'GET') return await videoAudioResponse(env, request, video[1], video[2]);
       if (url.pathname === '/api/analise' && request.method === 'GET') {
         // pública: a mesma para todo mundo, fica 2 minutos no cache. `voice`: nome da voz do Grok
         // (o áudio é gerado no primeiro clique em "Ouvir"), ou null se ela não estiver ligada

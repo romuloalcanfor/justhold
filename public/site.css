@@ -235,6 +235,35 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .daily .play.on { border-color: rgba(217, 164, 65, .55); }
 .daily .play.loading svg { animation: jh-breathe 1.2s ease-in-out infinite; }
 @keyframes jh-breathe { 50% { opacity: .35; } }
+.daily-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.daily .play.watch { border-color: rgba(247, 147, 26, .5); background: rgba(247, 147, 26, .1); }
+.daily .play.watch:hover { background: rgba(247, 147, 26, .18); }
+.daily .play.watch svg { background: #f7931a; }
+
+/* vídeo da análise: janela por cima da página, com o player 16:9 */
+.vmodal { width: min(1280px, 94vw); max-width: none; padding: 0; border: 0; background: transparent; overflow: visible; }
+.vmodal::backdrop { background: rgba(0, 0, 0, .82); backdrop-filter: blur(4px); }
+.vclose { position: absolute; top: -44px; right: 0; width: 36px; height: 36px; border: 1px solid var(--line-strong); border-radius: 50%;
+  background: rgba(255, 255, 255, .06); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; }
+.vbox { aspect-ratio: 16 / 9; display: grid; place-items: center; color: var(--muted); background: #050506; border-radius: 14px; }
+.vplayer { position: relative; overflow: hidden; border-radius: 14px; background: #050506; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.vplayer canvas { display: block; width: 100%; height: auto; cursor: pointer; }
+.vp-big { position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; border: 0; border-radius: 50%; background: rgba(247, 147, 26, .95);
+  color: #111; cursor: pointer; transition: transform .2s, opacity .2s; }
+.vp-big svg { width: 44px; height: 44px; margin-left: 6px; }
+.vp-big:hover { transform: scale(1.06); }
+.vplayer.playing .vp-big { opacity: 0; pointer-events: none; }
+.vp-bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 28px 16px 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .75)); opacity: 0; transition: opacity .25s; }
+.vplayer:not(.playing) .vp-bar, .vplayer:hover .vp-bar, .vplayer:focus-within .vp-bar { opacity: 1; }
+.vp-btn { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; }
+.vp-btn:hover { background: rgba(255, 255, 255, .12); }
+.vp-btn svg { width: 22px; height: 22px; }
+.vp-time { color: #ddd; font-size: 13px; font-variant-numeric: tabular-nums; flex: none; }
+.vp-seek { flex: 1; accent-color: #f7931a; cursor: pointer; }
+.vplayer.loading .vp-big { animation: jh-breathe 1.2s ease-in-out infinite; }
+.vplayer:fullscreen { display: grid; place-items: center; border-radius: 0; }
+.vplayer:fullscreen canvas { width: min(100vw, 177.78vh); }
 .daily .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0 0 28px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--line); }
 .daily .tile { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: var(--panel); }
 .daily .tile .tl { color: var(--dim); font-size: 12px; }

@@ -85,6 +85,13 @@ export async function audioResponse(env, request, id, lang) {
 
 const notFound = () => new Response('Não encontrado.', { status: 404 });
 
+// GET /api/analise/video/<id>-<pt|en>.mp3: narração do vídeo da análise. Ela é feita no Mac, junto
+// com o roteiro (scripts/video.mjs), e enviada pronta para o R2; aqui só entrega.
+export async function videoAudioResponse(env, request, id, lang) {
+  if (!env.AUDIO || !/^\d{4}-\d{2}-\d{2}-(manha|tarde|fechamento)$/.test(id) || !['pt', 'en'].includes(lang)) return notFound();
+  return serve(env, request, `videos/${id}-${lang}.mp3`);
+}
+
 // Entrega o MP3 com suporte a Range (o Safari só toca áudio assim).
 async function serve(env, request, key) {
   const range = request.headers.get('range');
